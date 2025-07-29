@@ -124,7 +124,7 @@
             <q-icon name="login" class="text-primary" />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="font-medium">Entrar</q-item-label>
+            <q-item-label class="font-medium" @click="navigateToLogin">Entrar</q-item-label>
             <q-item-label caption class="text-xs">Acesse sua conta</q-item-label>
           </q-item-section>
         </q-item>
@@ -192,7 +192,7 @@ const navigateToAbout = () => {
 };
 
 const navigateToLogin = () => {
-  console.log('Navegar para página de login');
+  void router.push('/login');
 };
 
 const navigateToSignup = () => {

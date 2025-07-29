@@ -136,6 +136,10 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
 // Funções de navegação
 const navigateToAdopt = () => {
   // router.push('/adotar')
@@ -143,8 +147,7 @@ const navigateToAdopt = () => {
 };
 
 const navigateToRegister = () => {
-  // router.push('/divulgar')
-  console.log('Navegar para página de divulgação');
+  void router.push('/register');
 };
 
 const navigateToContact = () => {
