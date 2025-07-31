@@ -3,28 +3,27 @@
     class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4"
   >
     <div class="max-w-6xl w-full">
+      <div class="text-center mt-8 flex flex-col items-center">
+        <h2 class="text-3xl font-bold text-gray-800 mb-3">Bem-vindo de volta!</h2>
+
+      </div>
+
       <div class="grid lg:grid-cols-2 gap-12 items-center">
-        <div class="lg:flex flex-col items-center justify-center">
+        <div class="lg:flex flex-col items-center justify-center ">
           <div class="relative">
             <img
               src="/dog-and-cat-happy.png"
               alt="Cachorro e gato felizes"
               class="w-full max-w-md mx-auto rounded-3xl shadow-2xl"
             />
-            <div class="absolute -top-4 -right-4 bg-accent text-white p-3 rounded-full shadow-lg">
+            <div class="absolute -bottom-4 -left-4 bg-accent text-white p-3 rounded-full shadow-lg">
               <q-icon name="pets" size="24px" />
             </div>
           </div>
-          <div class="text-center mt-8">
-            <h2 class="text-3xl font-bold text-gray-800 mb-3">Bem-vindo de volta!</h2>
-            <p class="text-gray-600 max-w-sm">
-              Entre na sua conta e continue ajudando pets a encontrarem uma família amorosa
-            </p>
-          </div>
         </div>
 
-        <div class="w-full max-w-md mx-auto lg:mx-0">
-          <div class="bg-white rounded-3xl shadow-xl p-8">
+        <div class="w-full max-w-md mx-auto lg:mx-0 flex flex-col items-center">
+          <div class="bg-white rounded-3xl shadow-xl p-8 w-full">
             <!-- Header do Formulário -->
             <div class="text-center mb-8">
               <div class="flex justify-center items-center mb-4">
@@ -154,7 +153,7 @@
                 <q-btn
                   flat
                   no-caps
-                  class="text-accent font-semibold hover:text-orange-400 transition-colors duration-200 p-0 ml-1"
+                  class="text-accent font-semibold hover:text-orange-400 transition-colors duration-200 p-0 ml-1 rounded px-2"
                   @click="goToSignup"
                 >
                   Cadastre-se gratuitamente
@@ -177,17 +176,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Decoração de Fundo -->
-    <div class="fixed top-10 left-10 text-orange-200 opacity-20 hidden xl:block">
-      <q-icon name="pets" size="60px" />
-    </div>
-    <div class="fixed bottom-10 right-10 text-accent opacity-20 hidden xl:block">
-      <q-icon name="favorite" size="50px" />
-    </div>
-    <div class="fixed top-1/3 right-20 text-primary opacity-20 hidden xl:block">
-      <q-icon name="pets" size="40px" />
-    </div>
   </div>
 </template>
 
@@ -195,6 +183,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
+import { api } from 'src/boot/axios';
 
 const router = useRouter();
 const $q = useQuasar();
@@ -217,8 +206,12 @@ const onSubmit = async () => {
   loading.value = true;
 
   try {
-    // Simular login
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const response = await api.post('/auth/login', {
+      email: email.value,
+      password: password.value,
+    });
+
+    console.log('Login successful:', response.data);
 
     $q.notify({
       color: 'positive',
@@ -227,7 +220,6 @@ const onSubmit = async () => {
       position: 'top',
     });
 
-    // Redirecionar para página inicial
     void router.push('/');
   } catch (error) {
     $q.notify({

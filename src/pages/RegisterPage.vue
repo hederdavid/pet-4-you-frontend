@@ -1,78 +1,16 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-    <!-- Imagem Flutuante Grande no Canto Superior Direito -->
-    <div class="fixed top-8 right-8 z-10 hidden xl:block animate-float">
-      <div class="relative">
-        <div
-          class="bg-white rounded-full p-6 shadow-2xl border-4 border-white/20 backdrop-blur-sm transform hover:scale-110 transition-all duration-500"
-        >
-          <img
-            src="/cute-dog-and-cat.png"
-            alt="Cachorro e gato fofos"
-            class="w-48 h-48 rounded-full object-cover"
-          />
-
-          <!-- Partículas flutuantes ao redor da imagem -->
-          <div
-            class="absolute -top-4 -left-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white p-3 rounded-full shadow-lg animate-bounce-slow"
-          >
-            <q-icon name="favorite" size="24px" />
-          </div>
-          <div
-            class="absolute -bottom-4 -right-4 bg-gradient-to-r from-accent to-purple-600 text-white p-2 rounded-full shadow-lg animate-pulse"
-          >
-            <q-icon name="pets" size="20px" />
-          </div>
-          <div
-            class="absolute top-4 -left-4 bg-gradient-to-r from-primary to-blue-600 text-white p-2 rounded-full shadow-lg animate-spin-slow"
-          >
-            <q-icon name="star" size="16px" />
-          </div>
-          <div
-            class="absolute -top-2 right-8 bg-gradient-to-r from-yellow-400 to-orange-400 text-white p-1 rounded-full shadow-lg animate-ping"
-          >
-            <q-icon name="diamond" size="12px" />
-          </div>
-
-          <!-- Efeito de brilho -->
-          <div
-            class="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
-          ></div>
-        </div>
-
-        <!-- Texto flutuante -->
-        <div class="mt-4 text-center bg-white/90 backdrop-blur-sm rounded-2xl p-3 shadow-lg">
-          <p class="text-primary font-semibold text-sm">Junte-se à família! 🐾</p>
-          <p class="text-gray-600 text-xs">Mais de 10.000 pets adotados</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Container Principal -->
     <div class="flex items-center justify-center min-h-screen py-12 px-4">
       <div class="max-w-4xl w-full relative">
-        <!-- Formulário de Registro Centralizado -->
         <div class="w-full max-w-lg mx-auto relative animate-fade-in">
-          <!-- Elementos decorativos animados -->
-          <div
-            class="absolute -top-6 -left-6 w-12 h-12 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full opacity-20 animate-pulse"
-          ></div>
-          <div
-            class="absolute -bottom-6 -right-6 w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full opacity-25 animate-bounce-slow"
-          ></div>
-          <div
-            class="absolute top-1/3 -right-8 w-6 h-6 bg-gradient-to-r from-accent to-purple-600 rounded-full opacity-30 animate-ping"
-          ></div>
-
           <div
             class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/20 transform hover:shadow-3xl transition-all duration-300"
           >
-            <!-- Header do Formulário -->
             <div class="text-center mb-8">
               <div class="flex justify-center items-center mb-4">
                 <q-avatar
                   size="60px"
-                  class="bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg"
+                  class="bg-accent shadow-lg"
                 >
                   <q-icon name="pets" size="32px" class="text-white" />
                 </q-avatar>
@@ -87,8 +25,7 @@
               ></div>
             </div>
 
-            <!-- Formulário -->
-            <q-form @submit="onSubmit" class="space-y-5">
+            <q-form @submit="onSubmit" class="space-y-1 ">
               <!-- Nome Completo -->
               <div>
                 <q-input
@@ -134,7 +71,10 @@
                   outlined
                   class="w-full"
                   mask="(##) #####-####"
-                  placeholder="(11) 99999-9999"
+                  placeholder="(77) 99999-9999"
+                  :rules="[
+                    (val) => !!val || 'Telefone deve ter pelo menos 10 caracteres',
+                  ]"
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone" class="text-primary" />
@@ -194,57 +134,83 @@
                 </q-input>
               </div>
 
-              <!-- Tipo de Usuário -->
+              <!-- Estado -->
               <div>
                 <q-select
-                  v-model="userType"
-                  :options="userTypeOptions"
-                  label="Eu sou..."
+                  v-model="selectedState"
+                  :options="stateOptions"
+                  label="Estado"
                   outlined
                   class="w-full"
-                  :rules="[(val) => !!val || 'Selecione o tipo de usuário']"
+                  option-label="name"
+                  option-value="code"
+                  emit-value
+                  map-options
+                  clearable
+                  use-input
+                  input-debounce="300"
+                  @filter="filterStates"
+                  @update:model-value="onStateChange"
+                  :rules="[(val) => !!val || 'Estado é obrigatório']"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="category" class="text-primary" />
+                    <q-icon name="map" class="text-primary" />
+                  </template>
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey"> Nenhum estado encontrado </q-item-section>
+                    </q-item>
                   </template>
                 </q-select>
               </div>
 
-              <!-- Termos e Condições -->
-              <div class="flex items-start space-x-3">
-                <q-checkbox
-                  v-model="acceptTerms"
-                  color="primary"
-                  :rules="[(val: boolean) => !!val || 'Você deve aceitar os termos']"
-                />
-                <div class="text-sm text-gray-600 leading-relaxed">
-                  Eu concordo com os
-                  <q-btn
-                    flat
-                    no-caps
-                    class="text-primary hover:text-accent transition-colors duration-200 p-0"
-                    @click="showTerms"
-                  >
-                    Termos de Uso
-                  </q-btn>
-                  e
-                  <q-btn
-                    flat
-                    no-caps
-                    class="text-primary hover:text-accent transition-colors duration-200 p-0"
-                    @click="showPrivacy"
-                  >
-                    Política de Privacidade
-                  </q-btn>
-                </div>
-              </div>
-
-              <!-- Newsletter -->
-              <div class="flex items-center space-x-3">
-                <q-checkbox v-model="acceptNewsletter" color="accent" />
-                <span class="text-sm text-gray-600">
-                  Quero receber novidades sobre adoções e eventos
-                </span>
+              <!-- Cidade -->
+              <div>
+                <q-select
+                  v-model="selectedCity"
+                  :options="cityOptions"
+                  label="Cidade"
+                  outlined
+                  class="w-full"
+                  option-label="name"
+                  option-value="name"
+                  emit-value
+                  map-options
+                  clearable
+                  use-input
+                  input-debounce="300"
+                  @filter="filterCities"
+                  :disable="!selectedState"
+                  :loading="loadingCities"
+                  :rules="[(val) => !!val || 'Cidade é obrigatória']"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="location_city" class="text-primary" />
+                  </template>
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey">
+                        {{
+                          !selectedState
+                            ? 'Selecione um estado primeiro'
+                            : loadingCities
+                              ? 'Carregando cidades...'
+                              : 'Nenhuma cidade encontrada'
+                        }}
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                  <template v-slot:loading>
+                    <q-item>
+                      <q-item-section>
+                        <q-item-label>
+                          <q-spinner-dots color="primary" size="20px" />
+                          Carregando cidades...
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
               </div>
 
               <!-- Botão de Cadastro -->
@@ -269,30 +235,6 @@
               <div class="relative flex justify-center text-sm">
                 <span class="px-4 bg-white text-gray-500">ou cadastre-se com</span>
               </div>
-            </div>
-
-            <!-- Cadastro Social -->
-            <div class="grid grid-cols-2 gap-4">
-              <q-btn
-                outline
-                color="primary"
-                class="py-3 rounded-xl hover:bg-blue-50 transition-all duration-200"
-                no-caps
-                @click="registerWithGoogle"
-              >
-                <q-icon name="fab fa-google" class="mr-2" />
-                Google
-              </q-btn>
-              <q-btn
-                outline
-                color="accent"
-                class="py-3 rounded-xl hover:bg-purple-50 transition-all duration-200"
-                no-caps
-                @click="registerWithFacebook"
-              >
-                <q-icon name="fab fa-facebook-f" class="mr-2" />
-                Facebook
-              </q-btn>
             </div>
 
             <!-- Link para Login -->
@@ -330,161 +272,153 @@
         </div>
       </div>
     </div>
-
-    <!-- Decorações de Fundo Animadas -->
-    <!-- Não conflitam com a imagem principal no canto superior direito -->
-    <div
-      class="fixed top-1/2 left-8 text-orange-200 opacity-15 hidden xl:block animate-bounce-slow"
-    >
-      <q-icon name="pets" size="40px" />
-    </div>
-    <div class="fixed bottom-20 left-1/4 text-accent opacity-20 hidden xl:block animate-pulse">
-      <q-icon name="favorite" size="35px" />
-    </div>
-    <div class="fixed top-1/4 left-12 text-primary opacity-25 hidden xl:block animate-spin-slow">
-      <q-icon name="star" size="30px" />
-    </div>
-    <div
-      class="fixed bottom-1/3 right-1/4 text-orange-300 opacity-15 hidden xl:block animate-float"
-    >
-      <q-icon name="volunteer_activism" size="45px" />
-    </div>
-    <div class="fixed top-3/4 left-1/3 text-purple-300 opacity-20 hidden xl:block animate-ping">
-      <q-icon name="diamond" size="25px" />
-    </div>
-
-    <!-- Partículas flutuantes menores -->
-    <div
-      class="fixed top-16 left-1/2 w-3 h-3 bg-orange-300 rounded-full opacity-30 hidden xl:block animate-bounce-slow"
-    ></div>
-    <div
-      class="fixed bottom-32 right-1/3 w-2 h-2 bg-purple-400 rounded-full opacity-40 hidden xl:block animate-pulse"
-    ></div>
-    <div
-      class="fixed top-2/3 right-20 w-4 h-4 bg-blue-300 rounded-full opacity-25 hidden xl:block animate-ping"
-    ></div>
   </div>
 </template>
 
-<style scoped>
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-@keyframes bounce-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-bounce-slow {
-  animation: bounce-slow 3s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 8s linear infinite;
-}
-
-.animate-shimmer {
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-/* Animação de entrada */
-.animate-fade-in {
-  animation: fadeIn 1s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hover effects */
-.hover-glow:hover {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-  transform: translateY(-2px);
-}
-</style>
+<style scoped></style>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
+import axios from 'axios';
+import { api } from 'src/boot/axios';
 
 const router = useRouter();
 const $q = useQuasar();
 
-// Form data
 const fullName = ref('');
 const email = ref('');
 const phone = ref('');
 const password = ref('');
 const confirmPassword = ref('');
-const userType = ref(null);
-const acceptTerms = ref(false);
-const acceptNewsletter = ref(true);
+const selectedState = ref('');
+const selectedCity = ref('');
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const loading = ref(false);
 
-// Options
-const userTypeOptions = [
-  { label: '🏠 Quero adotar um pet', value: 'adopter' },
-  { label: '❤️ Tenho pets para doação', value: 'donor' },
-  { label: '🏥 Sou de uma ONG/Abrigo', value: 'organization' },
-  { label: '🤝 Quero ser voluntário', value: 'volunteer' },
+const brazilianStates = [
+  { name: 'Acre', code: 'AC' },
+  { name: 'Alagoas', code: 'AL' },
+  { name: 'Amapá', code: 'AP' },
+  { name: 'Amazonas', code: 'AM' },
+  { name: 'Bahia', code: 'BA' },
+  { name: 'Ceará', code: 'CE' },
+  { name: 'Distrito Federal', code: 'DF' },
+  { name: 'Espírito Santo', code: 'ES' },
+  { name: 'Goiás', code: 'GO' },
+  { name: 'Maranhão', code: 'MA' },
+  { name: 'Mato Grosso', code: 'MT' },
+  { name: 'Mato Grosso do Sul', code: 'MS' },
+  { name: 'Minas Gerais', code: 'MG' },
+  { name: 'Pará', code: 'PA' },
+  { name: 'Paraíba', code: 'PB' },
+  { name: 'Paraná', code: 'PR' },
+  { name: 'Pernambuco', code: 'PE' },
+  { name: 'Piauí', code: 'PI' },
+  { name: 'Rio de Janeiro', code: 'RJ' },
+  { name: 'Rio Grande do Norte', code: 'RN' },
+  { name: 'Rio Grande do Sul', code: 'RS' },
+  { name: 'Rondônia', code: 'RO' },
+  { name: 'Roraima', code: 'RR' },
+  { name: 'Santa Catarina', code: 'SC' },
+  { name: 'São Paulo', code: 'SP' },
+  { name: 'Sergipe', code: 'SE' },
+  { name: 'Tocantins', code: 'TO' },
 ];
 
-// Validation
+interface IBGECity {
+  id: number;
+  nome: string;
+}
+
+const stateOptions = ref([...brazilianStates]);
+const cityOptions = ref<Array<{ name: string; id: number }>>([]);
+const loadingCities = ref(false);
+
+const fetchCitiesByState = async (stateCode: string) => {
+  try {
+    loadingCities.value = true;
+    const response = await axios.get<IBGECity[]>(
+      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${stateCode}/municipios`,
+    );
+    
+    const cities = response.data
+      .map((city) => ({
+        name: city.nome,
+        id: city.id,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return cities;
+  } catch (error) {
+    console.error('Erro ao buscar cidades:', error);
+    $q.notify({
+      color: 'negative',
+      message: 'Erro ao carregar cidades. Tente novamente.',
+      icon: 'error',
+      position: 'top',
+    });
+    return [];
+  } finally {
+    loadingCities.value = false;
+  }
+};
+
 const isValidEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-// Actions
+const filterStates = (val: string, update: (callback: () => void) => void) => {
+  update(() => {
+    if (val === '') {
+      stateOptions.value = [...brazilianStates];
+    } else {
+      const needle = val.toLowerCase();
+      stateOptions.value = brazilianStates.filter((state) =>
+        state.name.toLowerCase().includes(needle),
+      );
+    }
+  });
+};
+
+const filterCities = (val: string, update: (callback: () => void) => void) => {
+  update(() => {
+    if (!selectedState.value || cityOptions.value.length === 0) {
+      return;
+    }
+
+    const allCities = [...cityOptions.value];
+
+    if (val === '') {
+      cityOptions.value = allCities;
+    } else {
+      const needle = val.toLowerCase();
+      cityOptions.value = allCities.filter((city: { name: string; id: number }) =>
+        city.name.toLowerCase().includes(needle),
+      );
+    }
+  });
+};
+
+const onStateChange = async (stateCode: string) => {
+  selectedCity.value = '';
+  cityOptions.value = [];
+
+  if (stateCode) {
+    const cities = await fetchCitiesByState(stateCode);
+    cityOptions.value = cities;
+  }
+};
+
 const onSubmit = async () => {
-  if (!acceptTerms.value) {
+
+  if (!selectedState.value || !selectedCity.value) {
     $q.notify({
       color: 'negative',
-      message: 'Você deve aceitar os termos de uso',
+      message: 'Por favor, selecione o estado e a cidade',
       icon: 'error',
       position: 'top',
     });
@@ -494,19 +428,29 @@ const onSubmit = async () => {
   loading.value = true;
 
   try {
-    // Simular cadastro
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const formData = {
+      name: fullName.value,
+      email: email.value,
+      password: password.value,
+      phone: phone.value,
+      state: selectedState.value,
+      city: selectedCity.value,
+    };
+
+    console.log('Dados do cadastro:', formData);
+
+    const response = await api.post('/users', formData);
+    console.log('Cadastro realizado com sucesso:', response.data);
 
     $q.notify({
       color: 'positive',
-      message: 'Conta criada com sucesso! Bem-vindo ao Pet4You!',
+      message: 'Conta criada com sucesso!',
       icon: 'check_circle',
       position: 'top',
       timeout: 3000,
     });
 
-    // Redirecionar para página inicial ou dashboard
-    void router.push('/');
+    void router.push('/login');
   } catch (error) {
     console.error('Erro ao criar conta:', error);
     $q.notify({
@@ -518,42 +462,6 @@ const onSubmit = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-const showTerms = () => {
-  $q.notify({
-    color: 'info',
-    message: 'Termos de uso em desenvolvimento',
-    icon: 'info',
-    position: 'top',
-  });
-};
-
-const showPrivacy = () => {
-  $q.notify({
-    color: 'info',
-    message: 'Política de privacidade em desenvolvimento',
-    icon: 'info',
-    position: 'top',
-  });
-};
-
-const registerWithGoogle = () => {
-  $q.notify({
-    color: 'info',
-    message: 'Cadastro com Google em desenvolvimento',
-    icon: 'info',
-    position: 'top',
-  });
-};
-
-const registerWithFacebook = () => {
-  $q.notify({
-    color: 'info',
-    message: 'Cadastro com Facebook em desenvolvimento',
-    icon: 'info',
-    position: 'top',
-  });
 };
 
 const goToLogin = () => {

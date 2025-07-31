@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh lpR fFf">
-    <q-header elevated class="bg-white text-primary shadow-lg" height-hint="70">
+    <q-header class="bg-white text-primary shadow-lg" height-hint="70">
       <q-toolbar class="q-px-lg">
         <q-btn
           dense
@@ -184,7 +184,7 @@ const navigateToAdopt = () => {
 };
 
 const navigateToRegister = () => {
-  console.log('Navegar para página de divulgação');
+  
 };
 
 const navigateToAbout = () => {
@@ -196,6 +196,6 @@ const navigateToLogin = () => {
 };
 
 const navigateToSignup = () => {
-  console.log('Navegar para página de cadastro');
+  void router.push('/register');
 };
 </script>
