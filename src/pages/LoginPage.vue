@@ -5,11 +5,10 @@
     <div class="max-w-6xl w-full">
       <div class="text-center mt-8 flex flex-col items-center">
         <h2 class="text-3xl font-bold text-gray-800 mb-3">Bem-vindo de volta!</h2>
-
       </div>
 
       <div class="grid lg:grid-cols-2 gap-12 items-center">
-        <div class="lg:flex flex-col items-center justify-center ">
+        <div class="lg:flex flex-col items-center justify-center">
           <div class="relative">
             <img
               src="/dog-and-cat-happy.png"
@@ -183,7 +182,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import { api } from 'src/boot/axios';
+
+import { useAuthStore } from 'src/stores/auth';
 
 const router = useRouter();
 const $q = useQuasar();
@@ -194,6 +194,8 @@ const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const loading = ref(false);
+
+const authStore = useAuthStore();
 
 // Validation
 const isValidEmail = (email: string) => {
@@ -206,21 +208,24 @@ const onSubmit = async () => {
   loading.value = true;
 
   try {
-    const response = await api.post('/auth/login', {
+    const success = await authStore.login({
       email: email.value,
       password: password.value,
+      rememberMe: rememberMe.value,
     });
 
-    console.log('Login successful:', response.data);
-
-    $q.notify({
-      color: 'positive',
-      message: 'Login realizado com sucesso!',
-      icon: 'check_circle',
-      position: 'top',
-    });
-
-    void router.push('/');
+    if (success) {
+      // ...O COMPONENTE decide para onde ir.
+      await router.push('/'); // ou a rota que preferir
+    } else {
+      // Se não, mostra a notificação de erro
+      $q.notify({
+        color: 'negative',
+        position: 'top',
+        message: 'E-mail ou senha inválidos!',
+        icon: 'report_problem',
+      });
+    }
   } catch (error) {
     $q.notify({
       color: 'negative',
