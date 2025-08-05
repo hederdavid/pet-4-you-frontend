@@ -1,10 +1,7 @@
-// src/stores/auth.ts
-
 import { defineStore } from 'pinia';
-import { api } from 'boot/axios'; // Importa nossa instância configurada do Axios
-import type { User } from 'src/types/auth'; // Importa o "contrato" do nosso objeto de usuário
+import { api } from 'boot/axios'; 
+import type { User } from 'src/types/user';
 
-// Define a "forma" do nosso estado de autenticação para o TypeScript
 interface AuthState {
   user: User | null;
   isAuthReady: boolean;
@@ -18,10 +15,9 @@ interface LoginCredentials {
 }
 
 export const useAuthStore = defineStore('auth', {
-  // A função state agora retorna nosso tipo AuthState, garantindo a tipagem correta.
   state: (): AuthState => ({
-    user: null, // Começa como nulo, será preenchido após o login ou fetchUser
-    isAuthReady: false, // Flag para controlar a verificação inicial de sessão
+    user: null,
+    isAuthReady: false,
   }),
 
   // Getters são como "propriedades computadas" para a sua store.
@@ -94,7 +90,11 @@ export const useAuthStore = defineStore('auth', {
           id: data.userId,
           name: data.name,
           email: data.email,
+          city: data.city || '',
+          state: data.state || '',
+          phone: data.phone || '',
           role: data.role,
+          createdAt: data.createdAt,
         };
       } catch (error) {
         console.log('Usuário não autenticado ou sessão inválida:', error);
@@ -104,6 +104,16 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         // Marca que a verificação inicial terminou. Agora o guarda de rotas pode prosseguir.
         this.isAuthReady = true;
+      }
+    },
+
+    /**
+     * Atualiza os dados do usuário no estado local
+     * @param userData - Dados parciais do usuário para atualizar
+     */
+    updateUser(userData: Partial<User>) {
+      if (this.user) {
+        this.user = { ...this.user, ...userData };
       }
     },
   },

@@ -28,7 +28,7 @@ export default boot(({ router }) => {
     }
     
     if (to.name === 'login' && authStore.isLoggedIn) {
-        return next({ name: 'dashboard' })
+        return next({ name: 'home' })
     }
 
     return next()

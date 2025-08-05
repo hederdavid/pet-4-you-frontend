@@ -8,10 +8,7 @@
           >
             <div class="text-center mb-8">
               <div class="flex justify-center items-center mb-4">
-                <q-avatar
-                  size="60px"
-                  class="bg-accent shadow-lg"
-                >
+                <q-avatar size="60px" class="bg-accent shadow-lg">
                   <q-icon name="pets" size="32px" class="text-white" />
                 </q-avatar>
               </div>
@@ -25,14 +22,13 @@
               ></div>
             </div>
 
-            <q-form @submit="onSubmit" class="space-y-1 ">
-              <!-- Nome Completo -->
+            <q-form @submit="onSubmit" class="space-y-1">
               <div>
                 <q-input
                   v-model="fullName"
                   label="Nome Completo"
                   outlined
-                  class="w-full"
+                  lazy-rules
                   :rules="[
                     (val) => !!val || 'Nome é obrigatório',
                     (val) => val.length >= 2 || 'Nome deve ter pelo menos 2 caracteres',
@@ -44,14 +40,13 @@
                 </q-input>
               </div>
 
-              <!-- Email -->
               <div>
                 <q-input
                   v-model="email"
                   type="email"
                   label="E-mail"
                   outlined
-                  class="w-full"
+                  lazy-rules
                   :rules="[
                     (val) => !!val || 'E-mail é obrigatório',
                     (val) => isValidEmail(val) || 'E-mail inválido',
@@ -63,18 +58,15 @@
                 </q-input>
               </div>
 
-              <!-- Telefone -->
               <div>
                 <q-input
                   v-model="phone"
                   label="Telefone (opcional)"
                   outlined
-                  class="w-full"
                   mask="(##) #####-####"
                   placeholder="(77) 99999-9999"
-                  :rules="[
-                    (val) => !!val || 'Telefone deve ter pelo menos 10 caracteres',
-                  ]"
+                  lazy-rules
+                  :rules="[isValidPhoneNumber]"
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone" class="text-primary" />
@@ -82,14 +74,13 @@
                 </q-input>
               </div>
 
-              <!-- Senha -->
               <div>
                 <q-input
                   v-model="password"
                   :type="showPassword ? 'text' : 'password'"
                   label="Senha"
                   outlined
-                  class="w-full"
+                  lazy-rules
                   :rules="[
                     (val) => !!val || 'Senha é obrigatória',
                     (val) => val.length >= 6 || 'Senha deve ter pelo menos 6 caracteres',
@@ -108,14 +99,13 @@
                 </q-input>
               </div>
 
-              <!-- Confirmar Senha -->
               <div>
                 <q-input
                   v-model="confirmPassword"
                   :type="showConfirmPassword ? 'text' : 'password'"
                   label="Confirmar Senha"
                   outlined
-                  class="w-full"
+                  lazy-rules
                   :rules="[
                     (val) => !!val || 'Confirmação de senha é obrigatória',
                     (val) => val === password || 'Senhas não conferem',
@@ -134,14 +124,12 @@
                 </q-input>
               </div>
 
-              <!-- Estado -->
               <div>
                 <q-select
                   v-model="selectedState"
-                  :options="stateOptions"
+                  :options="filteredStateOptions"
                   label="Estado"
                   outlined
-                  class="w-full"
                   option-label="name"
                   option-value="code"
                   emit-value
@@ -149,8 +137,8 @@
                   clearable
                   use-input
                   input-debounce="300"
+                  lazy-rules
                   @filter="filterStates"
-                  @update:model-value="onStateChange"
                   :rules="[(val) => !!val || 'Estado é obrigatório']"
                 >
                   <template v-slot:prepend>
@@ -164,14 +152,12 @@
                 </q-select>
               </div>
 
-              <!-- Cidade -->
               <div>
                 <q-select
                   v-model="selectedCity"
-                  :options="cityOptions"
+                  :options="filteredCityOptions"
                   label="Cidade"
                   outlined
-                  class="w-full"
                   option-label="name"
                   option-value="name"
                   emit-value
@@ -179,6 +165,7 @@
                   clearable
                   use-input
                   input-debounce="300"
+                  lazy-rules
                   @filter="filterCities"
                   :disable="!selectedState"
                   :loading="loadingCities"
@@ -200,20 +187,9 @@
                       </q-item-section>
                     </q-item>
                   </template>
-                  <template v-slot:loading>
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label>
-                          <q-spinner-dots color="primary" size="20px" />
-                          Carregando cidades...
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </template>
                 </q-select>
               </div>
 
-              <!-- Botão de Cadastro -->
               <q-btn
                 type="submit"
                 color="accent"
@@ -227,17 +203,6 @@
               </q-btn>
             </q-form>
 
-            <!-- Divisor -->
-            <div class="relative my-6">
-              <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-gray-200"></div>
-              </div>
-              <div class="relative flex justify-center text-sm">
-                <span class="px-4 bg-white text-gray-500">ou cadastre-se com</span>
-              </div>
-            </div>
-
-            <!-- Link para Login -->
             <div class="text-center mt-6">
               <p class="text-gray-600">
                 Já tem uma conta?
@@ -254,7 +219,6 @@
           </div>
         </div>
 
-        <!-- Imagem Mobile -->
         <div class="lg:hidden mt-8 text-center">
           <div class="relative inline-block">
             <img
@@ -275,109 +239,44 @@
   </div>
 </template>
 
-<style scoped></style>
-
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
-import axios from 'axios';
 import { api } from 'src/boot/axios';
+import { brazilianStates, getCitiesByState } from 'src/services/locationService';
+import { notification } from 'src/utils/notification';
+import { isValidEmail, isValidPhoneNumber } from 'src/utils/validators';
+import type { State } from 'src/types/state';
+import type { City } from 'src/types/city';
+
+// Interfaces para tipagem forte
 
 const router = useRouter();
-const $q = useQuasar();
-
 const fullName = ref('');
 const email = ref('');
 const phone = ref('');
 const password = ref('');
 const confirmPassword = ref('');
-const selectedState = ref('');
-const selectedCity = ref('');
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const loading = ref(false);
 
-const brazilianStates = [
-  { name: 'Acre', code: 'AC' },
-  { name: 'Alagoas', code: 'AL' },
-  { name: 'Amapá', code: 'AP' },
-  { name: 'Amazonas', code: 'AM' },
-  { name: 'Bahia', code: 'BA' },
-  { name: 'Ceará', code: 'CE' },
-  { name: 'Distrito Federal', code: 'DF' },
-  { name: 'Espírito Santo', code: 'ES' },
-  { name: 'Goiás', code: 'GO' },
-  { name: 'Maranhão', code: 'MA' },
-  { name: 'Mato Grosso', code: 'MT' },
-  { name: 'Mato Grosso do Sul', code: 'MS' },
-  { name: 'Minas Gerais', code: 'MG' },
-  { name: 'Pará', code: 'PA' },
-  { name: 'Paraíba', code: 'PB' },
-  { name: 'Paraná', code: 'PR' },
-  { name: 'Pernambuco', code: 'PE' },
-  { name: 'Piauí', code: 'PI' },
-  { name: 'Rio de Janeiro', code: 'RJ' },
-  { name: 'Rio Grande do Norte', code: 'RN' },
-  { name: 'Rio Grande do Sul', code: 'RS' },
-  { name: 'Rondônia', code: 'RO' },
-  { name: 'Roraima', code: 'RR' },
-  { name: 'Santa Catarina', code: 'SC' },
-  { name: 'São Paulo', code: 'SP' },
-  { name: 'Sergipe', code: 'SE' },
-  { name: 'Tocantins', code: 'TO' },
-];
-
-interface IBGECity {
-  id: number;
-  nome: string;
-}
-
-const stateOptions = ref([...brazilianStates]);
-const cityOptions = ref<Array<{ name: string; id: number }>>([]);
+// --- Lógica de Estado e Cidade ---
+const selectedState = ref<string | null>(null);
+const selectedCity = ref<string | null>(null);
 const loadingCities = ref(false);
 
-const fetchCitiesByState = async (stateCode: string) => {
-  try {
-    loadingCities.value = true;
-    const response = await axios.get<IBGECity[]>(
-      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${stateCode}/municipios`,
-    );
-    
-    const cities = response.data
-      .map((city) => ({
-        name: city.nome,
-        id: city.id,
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    return cities;
-  } catch (error) {
-    console.error('Erro ao buscar cidades:', error);
-    $q.notify({
-      color: 'negative',
-      message: 'Erro ao carregar cidades. Tente novamente.',
-      icon: 'error',
-      position: 'top',
-    });
-    return [];
-  } finally {
-    loadingCities.value = false;
-  }
-};
-
-const isValidEmail = (email: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
+const filteredStateOptions = ref<State[]>([...brazilianStates]);
+const allCitiesForState = ref<City[]>([]); // A "fonte da verdade" para cidades
+const filteredCityOptions = ref<City[]>([]); // A lista para o QSelect
 
 const filterStates = (val: string, update: (callback: () => void) => void) => {
   update(() => {
     if (val === '') {
-      stateOptions.value = [...brazilianStates];
+      filteredStateOptions.value = [...brazilianStates];
     } else {
       const needle = val.toLowerCase();
-      stateOptions.value = brazilianStates.filter((state) =>
+      filteredStateOptions.value = brazilianStates.filter((state) =>
         state.name.toLowerCase().includes(needle),
       );
     }
@@ -386,79 +285,65 @@ const filterStates = (val: string, update: (callback: () => void) => void) => {
 
 const filterCities = (val: string, update: (callback: () => void) => void) => {
   update(() => {
-    if (!selectedState.value || cityOptions.value.length === 0) {
-      return;
-    }
-
-    const allCities = [...cityOptions.value];
-
     if (val === '') {
-      cityOptions.value = allCities;
+      filteredCityOptions.value = [...allCitiesForState.value];
     } else {
       const needle = val.toLowerCase();
-      cityOptions.value = allCities.filter((city: { name: string; id: number }) =>
+      filteredCityOptions.value = allCitiesForState.value.filter((city) =>
         city.name.toLowerCase().includes(needle),
       );
     }
   });
 };
 
-const onStateChange = async (stateCode: string) => {
-  selectedCity.value = '';
-  cityOptions.value = [];
+// Observador para buscar as cidades quando o estado muda
+watch(selectedState, async (stateCode) => {
+  allCitiesForState.value = [];
+  filteredCityOptions.value = [];
+  selectedCity.value = null;
 
   if (stateCode) {
-    const cities = await fetchCitiesByState(stateCode);
-    cityOptions.value = cities;
+    try {
+      loadingCities.value = true;
+      const response = await getCitiesByState(stateCode);
+      const cities = response.data
+        .map((city) => ({ name: city.nome, id: city.id }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      allCitiesForState.value = cities;
+      filteredCityOptions.value = cities;
+    } catch (error) {
+      console.error('Erro ao buscar cidades:', error);
+      notification.show('Erro ao carregar cidades. Tente novamente.', 'error');
+    } finally {
+      loadingCities.value = false;
+    }
   }
-};
+});
 
 const onSubmit = async () => {
-
-  if (!selectedState.value || !selectedCity.value) {
-    $q.notify({
-      color: 'negative',
-      message: 'Por favor, selecione o estado e a cidade',
-      icon: 'error',
-      position: 'top',
-    });
-    return;
-  }
-
   loading.value = true;
-
   try {
-    const formData = {
+    const payload = {
       name: fullName.value,
       email: email.value,
       password: password.value,
-      phone: phone.value,
+      phone: phone.value.replace(/\D/g, ''), // Envia apenas os números
       state: selectedState.value,
       city: selectedCity.value,
     };
 
-    console.log('Dados do cadastro:', formData);
+    const promise = api.post('/users', payload);
 
-    const response = await api.post('/users', formData);
-    console.log('Cadastro realizado com sucesso:', response.data);
-
-    $q.notify({
-      color: 'positive',
-      message: 'Conta criada com sucesso!',
-      icon: 'check_circle',
-      position: 'top',
-      timeout: 3000,
+    await notification.handlePromise(promise, {
+      loading: 'Criando sua conta...',
+      success: 'Conta criada com sucesso! Redirecionando...',
+      error: 'Ocorreu um erro ao criar sua conta.',
     });
 
     void router.push('/login');
   } catch (error) {
-    console.error('Erro ao criar conta:', error);
-    $q.notify({
-      color: 'negative',
-      message: 'Erro ao criar conta. Tente novamente.',
-      icon: 'error',
-      position: 'top',
-    });
+    console.error('Falha no processo de cadastro:', error);
   } finally {
     loading.value = false;
   }
@@ -468,3 +353,7 @@ const goToLogin = () => {
   void router.push('/login');
 };
 </script>
+
+<style scoped>
+/* Você pode adicionar estilos específicos aqui se necessário */
+</style>

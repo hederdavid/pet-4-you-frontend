@@ -39,6 +39,72 @@
       </div>
 
       <q-list class="q-pa-md">
+        <div v-if="currentUser?.role === 'ADMIN'">
+          <q-item-label header class="text-gray-700 font-semibold text-sm q-mb-sm">
+            ADMINISTRAÇÃO
+          </q-item-label>
+          <q-item
+            clickable
+            v-ripple
+            @click="navigateToAdminStats"
+            class="rounded-xl q-mb-xs hover:bg-blue-100 transition-all duration-200"
+          >
+            <q-item-section avatar>
+              <q-icon name="analytics" class="text-blue-600" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="font-medium">Dashboard</q-item-label>
+              <q-item-label caption class="text-xs">Métricas e estatísticas</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            @click="navigateToAdminUsers"
+            class="rounded-xl q-mb-xs hover:bg-green-100 transition-all duration-200"
+          >
+            <q-item-section avatar>
+              <q-icon name="group" class="text-green-600" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="font-medium">Usuários</q-item-label>
+              <q-item-label caption class="text-xs">Gerenciar usuários</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            @click="navigateToAdminPets"
+            class="rounded-xl q-mb-xs hover:bg-orange-100 transition-all duration-200"
+          >
+            <q-item-section avatar>
+              <q-icon name="pets" class="text-orange-600" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="font-medium">Pets</q-item-label>
+              <q-item-label caption class="text-xs">Moderar publicaões</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            @click="navigateToAdminReports"
+            class="rounded-xl q-mb-xs hover:bg-red-100 transition-all duration-200"
+          >
+            <q-item-section avatar>
+              <q-icon name="report" class="text-red-600" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="font-medium">Denúncias</q-item-label>
+              <q-item-label caption class="text-xs">Revisar infrações</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-separator class="q-my-md bg-gray-200" />
+        </div>
         <q-item-label header class="text-gray-700 font-semibold text-sm q-mb-sm">
           NAVEGAÇÃO
         </q-item-label>
@@ -146,36 +212,35 @@
             class="bg-primary rounded-xl q-pa-md q-mb-md shadow-lg"
             style="background: linear-gradient(135deg, var(--q-primary), var(--q-accent))"
           >
-            <div class="flex items-center q-mb-sm">
+            <div class="flex items-center">
               <q-avatar size="48px" class="q-mr-md shadow-md bg-white">
                 <div class="text-primary text-xl font-bold">
                   {{ (currentUser?.name || '').charAt(0).toUpperCase() }}
                 </div>
               </q-avatar>
               <div class="flex-1">
-                <div class="text-white font-semibold text-sm">
-                  Olá, {{ currentUser?.name?.split(' ')[0] || 'Usuário' }}! 👋
+                <div class="flex items-center justify-between">
+                  <p class="text-white font-semibold text-sm q-ma-none">
+                    Olá, {{ currentUser?.name?.split(' ')[0] || 'Usuário' }}! 👋
+                  </p>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="logout"
+                    class="text-white hover:bg-white/20 transition-all duration-200"
+                    style="opacity: 0.9"
+                    size="sm"
+                    @click="logout"
+                  >
+                    <q-tooltip class="bg-grey-8 text-white text-xs">Sair</q-tooltip>
+                  </q-btn>
                 </div>
+
                 <div class="text-white text-xs q-mt-xs" style="opacity: 0.9">
-                  {{ currentUser?.email }}
+                  <p class="q-ma-none">{{ currentUser?.email }}</p>
                 </div>
               </div>
-            </div>
-
-            <!-- Status/Badge -->
-            <div class="flex items-center justify-between">
-              <q-btn
-                flat
-                dense
-                round
-                icon="logout"
-                class="text-white hover:bg-white transition-all duration-200"
-                style="opacity: 0.8"
-                size="sm"
-                @click="logout"
-              >
-                <q-tooltip class="bg-grey-8 text-white text-xs">Sair</q-tooltip>
-              </q-btn>
             </div>
           </div>
 
@@ -212,21 +277,6 @@
               <q-item-section>
                 <q-item-label class="font-medium">Meus Pets</q-item-label>
                 <q-item-label caption class="text-xs">Pets cadastrados</q-item-label>
-              </q-item-section>
-            </q-item>
-
-            <q-item
-              clickable
-              v-ripple
-              @click="navigateToFavorites"
-              class="rounded-xl q-mb-xs hover:bg-red-100 transition-all duration-200"
-            >
-              <q-item-section avatar>
-                <q-icon name="favorite" class="text-red-500" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="font-medium">Favoritos</q-item-label>
-                <q-item-label caption class="text-xs">Pets que você salvou</q-item-label>
               </q-item-section>
             </q-item>
           </div>
@@ -299,17 +349,32 @@ const logout = async () => {
 };
 
 const navigateToProfile = () => {
-  console.log('Navegar para perfil do usuário');
-  // void router.push('/profile');
+  void router.push('/perfil');
 };
 
 const navigateToMyPets = () => {
   console.log('Navegar para meus pets');
-  // void router.push('/my-pets');
+  // void router.push('/meus-pets');
 };
 
-const navigateToFavorites = () => {
-  console.log('Navegar para favoritos');
-  // void router.push('/favorites');
+// Navegação Admin
+const navigateToAdminStats = () => {
+  console.log('Navegar para dashboard administrativo');
+  // void router.push('/admin/dashboard');
 };
+
+const navigateToAdminUsers = () => {
+  void router.push('/admin/usuarios');
+};
+
+const navigateToAdminPets = () => {
+  console.log('Navegar para moderação de pets');
+  // void router.push('/admin/pets');
+};
+
+const navigateToAdminReports = () => {
+  console.log('Navegar para denúncias');
+  // void router.push('/admin/reports');
+};
+
 </script>

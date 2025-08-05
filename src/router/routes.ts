@@ -4,7 +4,21 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    children: [
+      { path: '', name: 'home', component: () => import('pages/IndexPage.vue') },
+      {
+        path: 'perfil',
+        name: 'profile',
+        component: () => import('pages/ProfilePage.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'admin/usuarios',
+        name: 'usersManagement',
+        component: () => import('pages/admin/UserManagementPage.vue'),
+        meta: { requiresAuth: true, roles: ['ADMIN'] },
+      },
+    ],
   },
   {
     path: '/login',
@@ -13,6 +27,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/register',
+    name: 'register',
     component: () => import('pages/RegisterPage.vue'),
   },
 
@@ -20,6 +35,7 @@ const routes: RouteRecordRaw[] = [
   // but you can also remove it
   {
     path: '/:catchAll(.*)*',
+    name: 'forbidden',
     component: () => import('pages/ErrorNotFound.vue'),
   },
 ];
