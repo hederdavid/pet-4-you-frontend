@@ -284,7 +284,7 @@
       </q-list>
 
       <!-- Footer do Drawer -->
-      <div class="absolute-bottom q-pa-md">
+      <div class="p-3">
         <div class="bg-white rounded-xl q-pa-md shadow-sm">
           <div class="flex items-center q-mb-xs">
             <q-icon name="favorite" class="text-red-500 q-mr-xs" size="16px" />

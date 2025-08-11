@@ -1,6 +1,5 @@
 <template>
   <q-page class="q-pa-lg">
-    <!-- Header da página -->
     <div class="row items-center q-mb-xl">
       <div class="col">
         <h3 class="text-2xl font-bold text-gray-800 q-mb-xs">Gerenciamento de Usuários</h3>
@@ -9,13 +8,13 @@
       <q-btn
         color="primary"
         class="q-ml-auto"
-        @click="loadUsers"
+        @click="openNewUserModal"
         icon="add"
         label="Novo Usuário"
+        unelevated
       />
     </div>
 
-    <!-- Estatísticas Rápidas -->
     <div class="row q-gutter-md q-mb-lg">
       <div class="col-md-3 col-sm-6 col-xs-12">
         <q-card class="bg-blue-50 border-l-4 border-blue-500">
@@ -56,10 +55,8 @@
           </q-card-section>
         </q-card>
       </div>
-      
     </div>
 
-    <!-- Filtros e Busca -->
     <q-card flat bordered class="q-mb-lg">
       <q-card-section class="bg-gray-50">
         <div class="row q-gutter-md items-end">
@@ -104,7 +101,6 @@
       </q-card-section>
     </q-card>
 
-    <!-- Tabela de Usuários -->
     <q-card flat bordered>
       <q-card-section class="q-pa-none">
         <q-table
@@ -114,7 +110,6 @@
           :loading="loading"
           :pagination="{ rowsPerPage: 10 }"
         >
-          <!-- Avatar e Nome -->
           <template v-slot:body-cell-name="props">
             <q-td :props="props" class="q-py-md">
               <div class="flex items-center">
@@ -129,7 +124,6 @@
             </q-td>
           </template>
 
-          <!-- Role com Badge -->
           <template v-slot:body-cell-role="props">
             <q-td :props="props">
               <q-badge
@@ -140,7 +134,6 @@
             </q-td>
           </template>
 
-          <!-- Localização -->
           <template v-slot:body-cell-location="props">
             <q-td :props="props">
               <div class="text-sm">
@@ -150,7 +143,6 @@
             </q-td>
           </template>
 
-          <!-- Data de Criação -->
           <template v-slot:body-cell-createdAt="props">
             <q-td :props="props">
               <div class="text-sm text-gray-600">
@@ -159,7 +151,6 @@
             </q-td>
           </template>
 
-          <!-- Ações -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <div class="flex q-gutter-xs">
@@ -169,21 +160,10 @@
                   size="sm"
                   flat
                   round
-                  @click="openEditDialog(props.row)"
+                  @click="openEditUserModal(props.row)"
                   class="hover:bg-blue-100"
                 >
-                  <q-tooltip>Editar usuário</q-tooltip>
-                </q-btn>
-                <q-btn
-                  icon="security"
-                  color="orange"
-                  size="sm"
-                  flat
-                  round
-                  @click="openRoleDialog(props.row)"
-                  class="hover:bg-orange-100"
-                >
-                  <q-tooltip>Alterar permissões</q-tooltip>
+                  <q-tooltip class="bg-blue">Editar usuário</q-tooltip>
                 </q-btn>
                 <q-btn
                   icon="delete"
@@ -195,7 +175,7 @@
                   class="hover:bg-red-100"
                   :disable="props.row.id === currentUser?.id"
                 >
-                  <q-tooltip>Excluir usuário</q-tooltip>
+                  <q-tooltip class="bg-red-500">Excluir usuário</q-tooltip>
                 </q-btn>
               </div>
             </q-td>
@@ -204,70 +184,6 @@
       </q-card-section>
     </q-card>
 
-    <!-- Dialog de Edição -->
-    <q-dialog v-model="editDialog" persistent>
-      <q-card style="min-width: 400px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Editar Usuário</div>
-          <q-space />
-          <q-btn icon="close" flat round dense @click="editDialog = false" />
-        </q-card-section>
-
-        <q-card-section>
-          <q-form @submit="saveUser" class="q-gutter-md">
-            <q-input
-              v-model="editForm.name"
-              label="Nome completo"
-              outlined
-              :rules="[(val) => !!val || 'Nome é obrigatório']"
-            />
-            <q-input
-              v-model="editForm.email"
-              label="Email"
-              type="email"
-              outlined
-              :rules="[(val) => !!val || 'Email é obrigatório']"
-            />
-            <q-input v-model="editForm.phone" label="Telefone" outlined mask="(##) #####-####" />
-            <div class="row q-gutter-md">
-              <div class="col">
-                <q-select
-                  v-model="editForm.state"
-                  :options="states"
-                  option-label="nome"
-                  option-value="sigla"
-                  emit-value
-                  map-options
-                  label="Estado"
-                  outlined
-                  @update:model-value="loadCities"
-                />
-              </div>
-              <div class="col">
-                <q-select
-                  v-model="editForm.city"
-                  :options="cities"
-                  option-label="nome"
-                  option-value="nome"
-                  emit-value
-                  map-options
-                  label="Cidade"
-                  outlined
-                  :disable="!editForm.state"
-                />
-              </div>
-            </div>
-          </q-form>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" @click="editDialog = false" />
-          <q-btn color="primary" label="Salvar" @click="saveUser" :loading="saving" unelevated />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Dialog de Alteração de Role -->
     <q-dialog v-model="roleDialog" persistent>
       <q-card style="min-width: 350px">
         <q-card-section class="row items-center q-pb-none">
@@ -306,62 +222,48 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <ModalUser
+      v-model="newUserModal"
+      :edit-mode="editUserMode"
+      :user="selectedUserForEdit"
+      @user-created="loadUsers"
+      @user-updated="loadUsers"
+    />
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useQuasar } from 'quasar';
 import { api } from 'boot/axios';
 import { useAuthStore } from 'stores/auth';
 import type { User } from 'src/types/user';
-import axios from 'axios';
 import { notification } from 'src/utils/notification';
+import ModalUser from 'src/components/ModalUser.vue';
+import type { State } from 'src/types/state';
+import { dialogService } from 'src/utils/dialog';
+import { formatDate } from 'src/utils/formatters';
+import { brazilianStates } from 'src/services/locationService';
 
-interface State {
-  sigla: string;
-  nome: string;
-}
-
-interface City {
-  nome: string;
-}
-
-// Store e utils
-const $q = useQuasar();
 const authStore = useAuthStore();
 const currentUser = computed(() => authStore.user);
 
-// Estado reativo
 const loading = ref(false);
 const saving = ref(false);
 const users = ref<User[]>([]);
-const editDialog = ref(false);
 const roleDialog = ref(false);
+const newUserModal = ref(false);
+const editUserMode = ref(false);
 const selectedUser = ref<User | null>(null);
+const selectedUserForEdit = ref<User | null>(null);
 const newRole = ref<'USER' | 'ADMIN'>('USER');
 
-// Filtros
 const searchFilter = ref('');
 const roleFilter = ref<string | null>(null);
 const stateFilter = ref<string | null>(null);
 
-// IBGE API
-const states = ref<State[]>([]);
-const cities = ref<City[]>([]);
+const states = ref<State[]>(brazilianStates);
 
-// Formulário de edição
-const editForm = ref({
-  id: '',
-  name: '',
-  email: '',
-  phone: '',
-  city: '',
-  state: '',
-  role: 'USER' as 'USER' | 'ADMIN',
-});
-
-// Opções para filtros
 const roleOptions = [
   { label: 'Usuários Comuns', value: 'USER' },
   { label: 'Administradores', value: 'ADMIN' },
@@ -369,12 +271,11 @@ const roleOptions = [
 
 const stateOptions = computed(() =>
   states.value.map((state) => ({
-    label: state.nome,
-    value: state.sigla,
+    label: state.name,
+    value: state.code,
   })),
 );
 
-// Colunas da tabela
 const columns = [
   {
     name: 'name',
@@ -412,7 +313,6 @@ const columns = [
   },
 ];
 
-// Computed properties para estatísticas
 const filteredUsers = computed(() => {
   let filtered = users.value;
 
@@ -439,7 +339,6 @@ const totalUsers = computed(() => users.value.length);
 const userCount = computed(() => users.value.filter((u) => u.role === 'USER').length);
 const adminCount = computed(() => users.value.filter((u) => u.role === 'ADMIN').length);
 
-// Funções
 const loadUsers = async () => {
   loading.value = true;
   try {
@@ -447,75 +346,9 @@ const loadUsers = async () => {
     users.value = response.data;
   } catch (error) {
     console.error('Erro ao carregar usuários:', error);
-
     notification.show('Erro ao carregar usuários!', 'error');
   } finally {
     loading.value = false;
-  }
-};
-
-const loadStates = async () => {
-  try {
-    const response = await axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
-    states.value = response.data.sort((a: State, b: State) => a.nome.localeCompare(b.nome));
-  } catch (error) {
-    console.error('Erro ao carregar estados:', error);
-  }
-};
-
-const loadCities = async () => {
-  if (!editForm.value.state) {
-    cities.value = [];
-    return;
-  }
-
-  try {
-    const response = await axios.get(
-      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${editForm.value.state}/municipios`,
-    );
-    cities.value = response.data.sort((a: City, b: City) => a.nome.localeCompare(b.nome));
-  } catch (error) {
-    console.error('Erro ao carregar cidades:', error);
-  }
-};
-
-const openEditDialog = (user: User) => {
-  selectedUser.value = user;
-  editForm.value = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
-    city: user.city,
-    state: user.state,
-    role: user.role,
-  };
-  editDialog.value = true;
-  if (user.state) {
-    void loadCities();
-  }
-};
-
-const openRoleDialog = (user: User) => {
-  selectedUser.value = user;
-  newRole.value = user.role;
-  roleDialog.value = true;
-};
-
-const saveUser = async () => {
-  saving.value = true;
-  try {
-    await api.patch(`/users/${editForm.value.id}`, editForm.value);
-    void loadUsers();
-    editDialog.value = false;
-    notification.show('Usuário atualizado com sucesso!', 'success');
-  } catch (error) {
-    console.error('Erro ao salvar usuário:', error);
-
-    editDialog.value = false;
-    notification.show('Erro ao atualizar o usuário!', 'error');
-  } finally {
-    saving.value = false;
   }
 };
 
@@ -524,80 +357,59 @@ const changeUserRole = async () => {
 
   saving.value = true;
   try {
-    await api.put(`/admin/users/${selectedUser.value.id}/role`, {
+    await api.patch(`users/${selectedUser.value.id}`, {
       role: newRole.value,
     });
 
-    // Atualizar role na lista local
-    const index = users.value.findIndex((u) => u.id === selectedUser.value?.id);
-    if (index !== -1 && users.value[index]) {
-      users.value[index].role = newRole.value;
-    }
+    void loadUsers();
 
     roleDialog.value = false;
-    $q.notify({
-      type: 'positive',
-      message: 'Permissões alteradas com sucesso!',
-    });
+    notification.show('Permissões alteradas com sucesso!', 'success');
   } catch (error) {
     console.error('Erro ao alterar role:', error);
 
-    // Simular sucesso com dados mock
-    const index = users.value.findIndex((u) => u.id === selectedUser.value?.id);
-    if (index !== -1 && users.value[index]) {
-      users.value[index].role = newRole.value;
-    }
-
-    roleDialog.value = false;
-    $q.notify({
-      type: 'positive',
-      message: 'Permissões alteradas com sucesso! (modo demonstração)',
-    });
+    notification.show('Erro ao alterar permissões!', 'error');
   } finally {
     saving.value = false;
   }
 };
 
-const confirmDelete = (user: User) => {
-  $q.dialog({
-    title: 'Confirmar exclusão',
-    message: `Tem certeza que deseja excluir o usuário "${user.name}"? Esta ação não pode ser desfeita.`,
-    cancel: true,
-    persistent: true,
-    color: 'negative',
-  }).onOk(() => {
-    void (async () => {
-      try {
-        await api.patch(`/users/${user.id}`, { deletedAt: new Date() });
-
-        // Remover usuário da lista local
-        const index = users.value.findIndex((u) => u.id === user.id);
-        if (index !== -1) {
-          users.value.splice(index, 1);
-        }
-
-        notification.show('Usuário excluído com sucesso!', 'success');
-      } catch (error) {
-        console.error('Erro ao excluir usuário:', error);
-
-        notification.show('Erro ao excluir usuário!', 'error');
-      }
+const confirmDelete = async (user: User) => {
+  try {
+    await dialogService.confirm({
+      title: 'Confirmar Exclusão',
+      message: `Você tem certeza que deseja excluir o usuário "${user.name}"? Esta ação não pode ser desfeita.`,
+      okLabel: 'Excluir',
+      cancelLabel: 'Cancelar',
+      okColor: 'negative',
+      cancelColor: 'grey',
     });
-  });
+
+    await api.patch(`/users/${user.id}`, { deletedAt: new Date() });
+
+    notification.show('Usuário excluído com sucesso!', 'success');
+    void loadUsers();
+  } catch (error) {
+    console.error('Erro ao confirmar exclusão:', error);
+    return;
+  }
 };
 
-const formatDate = (dateString: string | undefined) => {
-  if (!dateString) return '-';
-  return new Date(dateString).toLocaleDateString('pt-BR');
+const openNewUserModal = () => {
+  editUserMode.value = false;
+  selectedUserForEdit.value = null;
+  newUserModal.value = true;
 };
 
-// Inicialização
+const openEditUserModal = (user: User) => {
+  editUserMode.value = true;
+  selectedUserForEdit.value = user;
+  newUserModal.value = true;
+};
+
 onMounted(() => {
   void loadUsers();
-  void loadStates();
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
