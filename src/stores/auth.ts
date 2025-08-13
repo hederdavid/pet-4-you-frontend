@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { api } from 'boot/axios'; 
+import { api } from 'boot/axios';
 import type { User } from 'src/types/user';
 
 interface AuthState {
@@ -53,6 +53,16 @@ export const useAuthStore = defineStore('auth', {
 
         // Avisa o componente que o login falhou.
         return false;
+      }
+    },
+
+    async loginWithFirebase(token: string) {
+      try {
+        await api.post('/auth/firebase-login', { token });
+        await this.fetchUser(); // Atualiza o estado do usuário
+      } catch (error) {
+        console.error('Erro no login com Firebase no backend:', error);
+        throw error;
       }
     },
 
