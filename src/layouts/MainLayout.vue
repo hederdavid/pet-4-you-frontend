@@ -143,7 +143,7 @@
         <q-item
           clickable
           v-ripple
-          @click="navigateToRegister"
+          @click="navigateToMyPets"
           class="rounded-xl q-mb-xs hover:bg-teal-100 transition-all duration-200"
         >
           <q-item-section avatar>
@@ -325,8 +325,6 @@ const navigateToAdopt = () => {
   console.log('Navegar para página de adoção');
 };
 
-const navigateToRegister = () => {};
-
 const navigateToAbout = () => {
   console.log('Navegar para página sobre');
 };
@@ -353,8 +351,7 @@ const navigateToProfile = () => {
 };
 
 const navigateToMyPets = () => {
-  console.log('Navegar para meus pets');
-  // void router.push('/meus-pets');
+  void router.push('/meusPets');
 };
 
 // Navegação Admin

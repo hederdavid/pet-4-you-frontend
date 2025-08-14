@@ -2,50 +2,9 @@
   <div
     class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4"
   >
-    <div class="relative my-8">
-      <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-gray-200"></div>
-      </div>
-      <div class="relative flex justify-center text-sm">
-        <span class="px-4 bg-white text-gray-500">ou continue com</span>
-      </div>
-    </div>
-
-    <div id="recaptcha-container"></div>
-
     <div class="grid grid-cols-1 gap-4">
-      <q-btn
-        id="sign-in-with-phone-button"
-        outline
-        color="teal"
-        class="py-3 rounded-xl hover:bg-teal-50 transition-all duration-200"
-        no-caps
-        @click="startPhoneLogin"
-      >
-        <q-icon name="phone" class="mr-2" />
-        Entrar com Telefone
-      </q-btn>
-      <div class="grid grid-cols-2 gap-4">
-        <q-btn
-          outline
-          color="primary"
-          class="py-3 rounded-xl hover:bg-blue-50 transition-all duration-200"
-          no-caps
-          @click="loginWithGoogle"
-        >
-          <q-icon name="fab fa-google" class="mr-2" />
-          Google
-        </q-btn>
-        <q-btn
-          outline
-          color="accent"
-          class="py-3 rounded-xl hover:bg-purple-50 transition-all duration-200"
-          no-caps
-          @click="loginWithFacebook"
-        >
-          <q-icon name="fab fa-facebook-f" class="mr-2" />
-          Facebook
-        </q-btn>
+      
+      <div class="grid grid-cols-1 gap-4">
         <div class="max-w-6xl w-full">
           <div class="text-center mt-8 flex flex-col items-center">
             <h2 class="text-3xl font-bold text-gray-800 mb-3">Bem-vindo de volta!</h2>
@@ -230,14 +189,7 @@
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
-import { firebaseAuth } from 'boot/firebase'; // Importa a instância do Auth
-import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
-import { notification } from 'src/utils/notification';
 import { useAuthStore } from 'src/stores/auth';
-import { api } from 'src/boot/axios';
-
-let recaptchaVerifier: RecaptchaVerifier | null = null;
-let confirmationResult: ConfirmationResult | null = null;
 
 const router = useRouter();
 const $q = useQuasar();
@@ -324,91 +276,7 @@ const goToSignup = () => {
   void router.push('/register');
 };
 
-const startPhoneLogin = () => {
-  $q.dialog({
-    title: 'Entrar com Telefone',
-    message: 'Por favor, digite seu número de telefone com DDD (ex: 77999999999).',
-    prompt: {
-      model: '',
-      type: 'text',
-      label: 'Número de Telefone',
-    },
-    cancel: true,
-    persistent: true,
-  }).onOk(async (phone) => {
-    if (!phone || phone.length < 10) {
-      notification.show('Número de telefone inválido.', 'error');
-      return;
-    }
-
-    const phoneNumber = `+55${phone}`; // Formato E.164 para o Brasil
-    const appVerifier = recaptchaVerifier!;
-
-    const promise = signInWithPhoneNumber(firebaseAuth, phoneNumber, appVerifier);
-
-    try {
-      confirmationResult = await notification.handlePromise(promise, {
-        loading: 'Enviando código de verificação...',
-        success: 'Código enviado com sucesso!',
-        error: 'Falha ao enviar o código. Tente novamente.',
-      });
-
-      // Se o envio foi bem-sucedido, peça o código
-      askForVerificationCode();
-    } catch (error) {
-      console.error('Erro no signInWithPhoneNumber:', error);
-    }
-  });
-};
-
-const askForVerificationCode = () => {
-  $q.dialog({
-    title: 'Verificar Código',
-    message: 'Digite o código de 6 dígitos que você recebeu por SMS.',
-    prompt: {
-      model: '',
-      type: 'text',
-      label: 'Código de Verificação',
-      maxlength: 6,
-    },
-    cancel: true,
-    persistent: true,
-  }).onOk(async (code) => {
-    if (!code || code.length !== 6 || !confirmationResult) {
-      notification.show('Código de verificação inválido.', 'error');
-      return;
-    }
-
-    try {
-      const result = await confirmationResult.confirm(code);
-      const firebaseToken = await result.user.getIdToken();
-
-      // Agora, autenticamos com nosso backend
-      await api.post('/auth/firebase-login', { token: firebaseToken });
-
-      // Atualiza o estado da store e redireciona
-      await authStore.fetchUser();
-      notification.show('Login com telefone realizado com sucesso!', 'success');
-      void router.push('/');
-    } catch (error) {
-      console.error('Erro ao confirmar código ou logar no backend:', error);
-      notification.show('Código inválido ou falha na autenticação.', 'error');
-    }
-  });
-};
-
 onMounted(() => {
-  recaptchaVerifier = new RecaptchaVerifier(
-    firebaseAuth,
-    'sign-in-with-phone-button', // USE O ID DO BOTÃO AQUI
-    {
-      size: 'invisible',
-      callback: () => {
-        // reCAPTCHA resolvido
-      },
-    },
-  );
-  // Opcional, mas recomendado: Renderize o reCAPTCHA para garantir que está pronto
-  recaptchaVerifier.render();
+  
 });
 </script>

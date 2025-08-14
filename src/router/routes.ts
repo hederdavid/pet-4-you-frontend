@@ -18,6 +18,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/admin/UserManagementPage.vue'),
         meta: { requiresAuth: true, roles: ['ADMIN'] },
       },
+      {
+        path: 'meusPets',
+        name: 'myPets',
+        component: () => import('pages/MyPetsPage.vue'),
+        meta: { requiresAuth: true },
+      }
     ],
   },
   {
