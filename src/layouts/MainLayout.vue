@@ -322,7 +322,7 @@ const navigateToHome = () => {
 };
 
 const navigateToAdopt = () => {
-  console.log('Navegar para página de adoção');
+  void router.push('/pets');
 };
 
 const navigateToAbout = () => {
@@ -365,13 +365,11 @@ const navigateToAdminUsers = () => {
 };
 
 const navigateToAdminPets = () => {
-  console.log('Navegar para moderação de pets');
-  // void router.push('/admin/pets');
+  void router.push('/admin/pets');
 };
 
 const navigateToAdminReports = () => {
   console.log('Navegar para denúncias');
   // void router.push('/admin/reports');
 };
-
 </script>

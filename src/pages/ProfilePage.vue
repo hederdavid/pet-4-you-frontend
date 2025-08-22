@@ -193,15 +193,6 @@
               <h3 class="text-lg font-semibold text-gray-800 mb-4">Ações</h3>
               <div class="space-y-3">
                 <q-btn
-                  color="primary"
-                  icon="add_circle"
-                  label="Cadastrar Pet"
-                  @click="navigateToRegisterPet"
-                  no-caps
-                  class="w-full"
-                />
-
-                <q-btn
                   color="secondary"
                   icon="pets"
                   label="Meus Pets"
@@ -389,7 +380,7 @@ const loadingCities = ref(false);
 // --- Dados Reativos ---
 const profileData = reactive<ProfileData>({ name: '', email: '', phone: '', state: '', city: '' });
 const passwordData = reactive<PasswordData>({ newPassword: '', confirmPassword: '' });
-const userStats = reactive<UserStats>({ petsRegistered: 0, adoptions: 0 }); // Carregar isso da API se necessário
+const userStats = reactive<UserStats>({ petsRegistered: 0, adoptions: 0 });
 
 // --- Lógica de Localização ---
 const filteredStateOptions = ref<State[]>([...brazilianStates]);
@@ -537,16 +528,22 @@ const deleteAccount = async () => {
 };
 
 // --- Funções de Navegação ---
-const navigateToRegisterPet = () => router.push('/register-pet');
-const navigateToMyPets = () => router.push('/my-pets');
-const navigateToHistory = () => router.push('/history');
+const navigateToMyPets = () => router.push('/meusPets');
+const navigateToHistory = () => router.push('/historico');
 
 // --- Lifecycle Hook ---
 onMounted(async () => {
   loadUserData();
+  const petsRegistered = await api.get(
+    `pets/user/${currentUser.value?.id}?publication_status=APPROVED`,
+  );
+  const petsAdopted = await api.get(`pets/user/${currentUser.value?.id}?pet_status=ADOPTED`);
+  userStats.petsRegistered = petsRegistered.data.items.length;
+  userStats.adoptions = petsAdopted.data.items.length;
+  console.log(petsAdopted.data.items)
+
   if (profileData.state) {
     await fetchCities(profileData.state);
-    // Reatribui a cidade para garantir que o v-model do q-select a reconheça
     profileData.city = currentUser.value?.city || '';
   }
 });

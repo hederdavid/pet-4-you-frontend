@@ -188,11 +188,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
 import { useAuthStore } from 'src/stores/auth';
+import { notification } from 'src/utils/notification';
 
 const router = useRouter();
-const $q = useQuasar();
 
 // Form data
 const email = ref('');
@@ -225,20 +224,10 @@ const onSubmit = async () => {
       await router.push('/'); // ou a rota que preferir
     } else {
       // Se não, mostra a notificação de erro
-      $q.notify({
-        color: 'negative',
-        position: 'top',
-        message: 'E-mail ou senha inválidos!',
-        icon: 'report_problem',
-      });
+      notification.show('E-mail ou senha inválidos!', 'error');
     }
   } catch (error) {
-    $q.notify({
-      color: 'negative',
-      message: 'Erro ao fazer login. Tente novamente.',
-      icon: 'error',
-      position: 'top',
-    });
+    notification.show('Erro ao fazer login. Tente novamente.', 'error');
     console.error(error);
   } finally {
     loading.value = false;
@@ -246,30 +235,15 @@ const onSubmit = async () => {
 };
 
 const forgotPassword = () => {
-  $q.notify({
-    color: 'info',
-    message: 'Link de recuperação será enviado para seu e-mail',
-    icon: 'email',
-    position: 'top',
-  });
+  notification.show('Link de recuperação será enviado para seu e-mail', 'info');
 };
 
 const loginWithGoogle = () => {
-  $q.notify({
-    color: 'info',
-    message: 'Login com Google em desenvolvimento',
-    icon: 'info',
-    position: 'top',
-  });
+  notification.show('Login com Google em desenvolvimento', 'info');
 };
 
 const loginWithFacebook = () => {
-  $q.notify({
-    color: 'info',
-    message: 'Login com Facebook em desenvolvimento',
-    icon: 'info',
-    position: 'top',
-  });
+  notification.show('Login com Facebook em desenvolvimento', 'info');
 };
 
 const goToSignup = () => {

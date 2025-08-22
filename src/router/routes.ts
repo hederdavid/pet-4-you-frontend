@@ -23,7 +23,23 @@ const routes: RouteRecordRaw[] = [
         name: 'myPets',
         component: () => import('pages/MyPetsPage.vue'),
         meta: { requiresAuth: true },
-      }
+      },
+      {
+        path: 'admin/pets',
+        name: 'petsManagement',
+        component: () => import('pages/admin/PetsPublicationsManagement.vue'),
+        meta: { requiresAuth: true, roles: ['ADMIN'] },
+      },
+      {
+        path: 'pets',
+        name: 'petAdoption',
+        component: () => import('pages/PetAdoption.vue'),
+      },
+      {
+        path: 'pets/:id',
+        name: 'petDetails',
+        component: () => import('pages/PetDetails.vue'),
+      },
     ],
   },
   {

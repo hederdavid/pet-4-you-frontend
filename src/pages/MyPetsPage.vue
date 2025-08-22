@@ -450,7 +450,7 @@ const loadPets = async () => {
   loading.value = true;
   try {
     const response = await api.get(`/pets/user/${authStore.user?.id}`);
-    pets.value = response.data;
+    pets.value = response.data.items;
   } catch (error) {
     console.error('Erro ao carregar pets:', error);
     notification.show('Erro ao carregar pets!', 'error');
@@ -484,7 +484,7 @@ const toggleStatus = (pet: Pet) => {
   }).onOk(() => {
     void (async () => {
       try {
-        await api.patch(`/pets/${pet.id}/status`, { status: newStatus });
+        await api.patch(`/pets/${pet.id}`, { pet_status: newStatus });
 
         const index = pets.value.findIndex((p) => p.id === pet.id);
         if (index !== -1 && pets.value[index]) {
