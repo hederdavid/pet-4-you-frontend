@@ -107,12 +107,8 @@ export const useAuthStore = defineStore('auth', {
           createdAt: data.createdAt,
         };
       } catch (error) {
-        console.log('Usuário não autenticado ou sessão inválida:', error);
-        // Se a API retornar um erro (ex: 401), significa que não há sessão válida.
-        // Garantimos que o estado 'user' seja nulo.
         this.user = null;
       } finally {
-        // Marca que a verificação inicial terminou. Agora o guarda de rotas pode prosseguir.
         this.isAuthReady = true;
       }
     },

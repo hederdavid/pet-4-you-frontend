@@ -122,7 +122,7 @@
 
           <!-- Upload de Fotos -->
           <div>
-            <label class="text-body1 text-weight-medium q-mb-sm block"> Fotos do pet </label>
+            <label class="text-body1 text-weight-medium q-mb-sm block"> Fotos do pet * </label>
             <q-file
               v-model="form.photos"
               label="Selecionar fotos"
@@ -130,13 +130,25 @@
               multiple
               accept="image/*"
               max-files="5"
-              :rules="[(val) => !val || val.length <= 5 || 'Máximo 5 fotos permitidas']"
+              :rules="[
+                (val) => {
+                  // No modo de edição, se já existem fotos (previews) não é obrigatório adicionar novas
+                  if (props.editMode && photosPreviews.length > 0) return true;
+                  // No modo de criação ou edição sem fotos existentes, é obrigatório
+                  return (!!val && val.length > 0) || 'É obrigatório enviar pelo menos uma foto';
+                },
+                (val) => !val || val.length <= 5 || 'Máximo 5 fotos permitidas',
+              ]"
             >
               <template v-slot:prepend>
                 <q-icon name="photo_camera" />
               </template>
               <template v-slot:hint>
-                Selecione até 5 fotos do seu pet (formatos: JPG, PNG)
+                {{
+                  props.editMode && photosPreviews.length > 0
+                    ? 'Selecione novas fotos para substituir as existentes (opcional)'
+                    : 'Selecione até 5 fotos do seu pet (formatos: JPG, PNG) - Obrigatório'
+                }}
               </template>
             </q-file>
 
@@ -181,13 +193,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import type { Pet } from 'src/types/pet';
-import {
-  PetSpecies,
-  PetAge,
-  PetSize,
-  PetGender,
-  type PetForm,
-} from 'src/types/pet';
+import { PetSpecies, PetAge, PetSize, PetGender, type PetForm } from 'src/types/pet';
 import { api } from 'src/boot/axios';
 import { useAuthStore } from 'src/stores/auth';
 
@@ -269,9 +275,12 @@ watch(
         photos: [],
       };
 
-      // Carregar previews das fotos existentes
+      // Carregar previews das fotos existentes - URLs completas do backend
       if (newPet.photos && newPet.photos.length > 0) {
-        photosPreviews.value = newPet.photos.map((photo) => photo.url);
+        photosPreviews.value = newPet.photos.map((photo) => {
+          // Se a URL já começa com http, usar como está, senão concatenar com base URL
+          return photo.url.startsWith('http') ? photo.url : `http://localhost:3001${photo.url}`;
+        });
       }
     }
   },
@@ -338,6 +347,7 @@ const submitForm = async () => {
   try {
     const formData = new FormData();
 
+    // Adicionar dados básicos do pet
     formData.append('name', form.value.name);
     formData.append('description', form.value.description);
     formData.append('species', form.value.species);
@@ -346,27 +356,48 @@ const submitForm = async () => {
     formData.append('gender', form.value.gender);
     formData.append('userId', authStore.user?.id || '');
 
+    // Adicionar fotos como arquivos
     if (form.value.photos && form.value.photos.length > 0) {
-      Array.from(form.value.photos).forEach((file) => {
-        formData.append(`photos`, file);
+      Array.from(form.value.photos).forEach((file, index) => {
+        formData.append('photos', file);
       });
     }
+
+    // Debug: Ver o que está sendo enviado
+    console.log('FormData contents:');
     for (const [key, value] of formData.entries()) {
-      console.log(key, value);
+      if (value instanceof File) {
+        console.log(`${key}: File - ${value.name} (${value.size} bytes)`);
+      } else {
+        console.log(`${key}: ${value}`);
+      }
     }
 
     let response;
     if (props.editMode && props.pet) {
-      response = await api.patch(`/pets/${props.pet.id}`, formData);
+      response = await api.patch(`/pets/${props.pet.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       emit('pet-updated', response.data);
     } else {
-      response = await api.post('/pets', formData);
+      response = await api.post('/pets', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       emit('pet-created', response.data);
     }
 
     closeModal();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao salvar pet:', error);
+
+    // Mostrar erro mais específico para o usuário
+    if (error.response?.data?.message) {
+      console.error('Erro do servidor:', error.response.data.message);
+    }
   } finally {
     saving.value = false;
   }

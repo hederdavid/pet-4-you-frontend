@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "aplicativo web para doação de pets",
   "productName": "Pet4You",
-  "author": "Your Name <hedermd6@gmail.com>",
+  "author": "Heder David <hedermd6@gmail.com>",
   "type": "module",
   "private": true,
   "scripts": {
