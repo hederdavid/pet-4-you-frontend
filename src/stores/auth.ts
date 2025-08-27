@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
 import type { User } from 'src/types/user';
+// 1. IMPORTE AS FUNÇÕES DE AUTENTICAÇÃO DO FIREBASE
+import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
 
 interface AuthState {
   user: User | null;
@@ -9,7 +11,6 @@ interface AuthState {
 
 interface LoginCredentials {
   email: string;
-
   password: string;
   rememberMe?: boolean;
 }
@@ -20,38 +21,47 @@ export const useAuthStore = defineStore('auth', {
     isAuthReady: false,
   }),
 
-  // Getters são como "propriedades computadas" para a sua store.
-  // Eles são reativos e cacheados.
   getters: {
-    isLoggedIn: (state) => !!state.user, // Um jeito fácil de verificar se há um usuário
-    isAdmin: (state) => state.user?.role === 'ADMIN', // Verifica a permissão de admin
+    isLoggedIn: (state) => !!state.user,
+    isAdmin: (state) => state.user?.role === 'ADMIN',
   },
 
-  // Actions são as funções que podem modificar o estado (state).
-  // É onde fica a lógica de negócio e as chamadas de API.
   actions: {
     /**
-     * Tenta autenticar o usuário no backend.
-     * @param credentials - O objeto com email, password, etc.
-     * @returns {Promise<boolean>} - Retorna `true` se o login for bem-sucedido, `false` caso contrário.
+     * Ação privada para autenticar no Firebase com um token customizado do backend.
+     * @private
      */
+    async _authenticateWithFirebase() {
+      if (!this.user) {
+        console.error('Tentativa de autenticar no Firebase sem um usuário logado no backend.');
+        return;
+      }
+      try {
+        // Pega o token customizado do nosso backend seguro
+        const response = await api.get('/auth/firebase-token');
+        const firebaseToken = response.data.token;
+
+        // Usa o token para fazer login silencioso no SDK do Firebase no frontend
+        const auth = getAuth();
+        await signInWithCustomToken(auth, firebaseToken);
+        console.log('Sessão do Firebase sincronizada com sucesso.');
+      } catch (error) {
+        console.error('Falha ao sincronizar a sessão com o Firebase:', error);
+      }
+    },
+
     async login(credentials: LoginCredentials) {
       try {
-        // Chama a API de login. O backend vai nos retornar os dados do usuário
-        // e setar os cookies HttpOnly no navegador.
         const response = await api.post('/auth/login', credentials);
-
-        // Se a chamada for bem-sucedida, atualizamos o estado 'user' com os dados recebidos.
         this.user = response.data.user;
 
-        // Avisa o componente que chamou a função que o login deu certo.
+        // 2. APÓS O LOGIN BEM-SUCEDIDO, SINCRONIZA A SESSÃO COM O FIREBASE
+        await this._authenticateWithFirebase();
+
         return true;
       } catch (error) {
-        // Se a API retornar um erro (ex: 401), limpamos qualquer estado de usuário antigo.
         this.user = null;
         console.error('Falha no login:', error);
-
-        // Avisa o componente que o login falhou.
         return false;
       }
     },
@@ -59,43 +69,33 @@ export const useAuthStore = defineStore('auth', {
     async loginWithFirebase(token: string) {
       try {
         await api.post('/auth/firebase-login', { token });
-        await this.fetchUser(); // Atualiza o estado do usuário
+        // fetchUser já irá chamar a autenticação do Firebase
+        await this.fetchUser();
       } catch (error) {
         console.error('Erro no login com Firebase no backend:', error);
         throw error;
       }
     },
 
-    /**
-     * Desloga o usuário, limpando o estado e os cookies no backend.
-     */
     async logout() {
       try {
-        // Chama a API de logout para que o backend possa invalidar o refresh_token no banco
-        // e enviar os comandos para limpar os cookies do navegador.
         await api.post('/auth/logout');
+
+        // 3. FAZ O LOGOUT DO FIREBASE TAMBÉM
+        const auth = getAuth();
+        await signOut(auth);
       } catch (error) {
         console.error('Erro na chamada de logout da API:', error);
       } finally {
-        // Independentemente do resultado da API, limpamos o estado do usuário no frontend.
         this.user = null;
       }
     },
 
-    /**
-     * Verifica se existe uma sessão de usuário ativa (um cookie válido)
-     * e atualiza o estado da store. É chamada no carregamento da aplicação.
-     */
     async fetchUser() {
-      // Se a verificação já foi feita, não faz de novo.
       if (this.isAuthReady) return;
 
       try {
-        // Chama a rota /profile. O navegador enviará o cookie de acesso automaticamente.
         const { data } = await api.get('/auth/profile');
-
-        // Se a API retornar sucesso (200 OK), significa que o cookie é válido.
-        // Populamos o estado 'user' com os dados recebidos.
         this.user = {
           id: data.userId,
           name: data.name,
@@ -106,7 +106,10 @@ export const useAuthStore = defineStore('auth', {
           role: data.role,
           createdAt: data.createdAt,
         };
-      } catch (error) {
+
+        // 4. SE O USUÁRIO TINHA UMA SESSÃO VÁLIDA, SINCRONIZA COM O FIREBASE
+        await this._authenticateWithFirebase();
+      } catch (error: unknown) {
         console.log(error)
         this.user = null;
       } finally {
@@ -114,10 +117,6 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    /**
-     * Atualiza os dados do usuário no estado local
-     * @param userData - Dados parciais do usuário para atualizar
-     */
     updateUser(userData: Partial<User>) {
       if (this.user) {
         this.user = { ...this.user, ...userData };
