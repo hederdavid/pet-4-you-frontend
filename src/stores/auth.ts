@@ -107,6 +107,7 @@ export const useAuthStore = defineStore('auth', {
           createdAt: data.createdAt,
         };
       } catch (error) {
+        console.log(error)
         this.user = null;
       } finally {
         this.isAuthReady = true;

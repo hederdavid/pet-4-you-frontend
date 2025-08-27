@@ -195,6 +195,7 @@ import { ref, computed, watch } from 'vue';
 import type { Pet } from 'src/types/pet';
 import { PetSpecies, PetAge, PetSize, PetGender, type PetForm } from 'src/types/pet';
 import { api } from 'src/boot/axios';
+import { AxiosError } from 'axios';
 import { useAuthStore } from 'src/stores/auth';
 // 1. IMPORTE AS FUNÇÕES DO FIREBASE STORAGE
 // (Certifique-se de que seu projeto frontend tenha o firebase instalado e configurado)
@@ -294,7 +295,6 @@ watch(
   () => form.value.photos,
   (newPhotos) => {
     if (newPhotos && newPhotos.length > 0) {
-      const newPreviews: string[] = [];
       const filePromises = Array.from(newPhotos).map((file) => {
         return new Promise<string>((resolve) => {
           const reader = new FileReader();
@@ -302,7 +302,7 @@ watch(
           reader.readAsDataURL(file);
         });
       });
-      Promise.all(filePromises).then((previews) => {
+      void Promise.all(filePromises).then((previews) => {
         photosPreviews.value = previews;
       });
     } else if (!props.editMode || (props.editMode && !props.pet?.photos?.length)) {
@@ -398,9 +398,9 @@ const submitForm = async () => {
     }
 
     closeModal();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erro ao salvar pet:', error);
-    if (error.response?.data?.message) {
+    if (error instanceof AxiosError && error.response?.data?.message) {
       console.error('Erro do servidor:', error.response.data.message);
     }
   } finally {
