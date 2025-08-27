@@ -196,6 +196,9 @@ import type { Pet } from 'src/types/pet';
 import { PetSpecies, PetAge, PetSize, PetGender, type PetForm } from 'src/types/pet';
 import { api } from 'src/boot/axios';
 import { useAuthStore } from 'src/stores/auth';
+// 1. IMPORTE AS FUNÇÕES DO FIREBASE STORAGE
+// (Certifique-se de que seu projeto frontend tenha o firebase instalado e configurado)
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface Props {
   modelValue: boolean;
@@ -221,6 +224,7 @@ const petForm = ref();
 const saving = ref(false);
 const photosPreviews = ref<string[]>([]);
 
+// O tipo do form.photos agora é File[] para o input, mas enviaremos string[] para a API
 const form = ref<PetForm>({
   name: '',
   description: '',
@@ -260,7 +264,7 @@ const sizeOptions = [
   { label: 'Grande', value: PetSize.LARGE, icon: 'album' },
 ];
 
-// Watch para carregar dados quando editing
+// Watch para carregar dados quando está editando
 watch(
   () => props.pet,
   (newPet) => {
@@ -272,37 +276,36 @@ watch(
         age: newPet.age,
         size: newPet.size,
         gender: newPet.gender,
-        photos: [],
+        photos: [], // Começa vazio, pois o usuário pode querer adicionar novas fotos
       };
 
-      // Carregar previews das fotos existentes - URLs completas do backend
+      // Carregar previews das fotos existentes
       if (newPet.photos && newPet.photos.length > 0) {
-        photosPreviews.value = newPet.photos.map((photo) => {
-          // Se a URL já começa com http, usar como está, senão concatenar com base URL
-          return photo.url.startsWith('http') ? photo.url : `http://localhost:3001${photo.url}`;
-        });
+        // Assume que as URLs do backend já estão completas e corretas
+        photosPreviews.value = newPet.photos.map((photo) => photo.url);
       }
     }
   },
   { immediate: true },
 );
 
-// Watch para gerar previews das fotos
+// Watch para gerar previews das novas fotos selecionadas
 watch(
   () => form.value.photos,
   (newPhotos) => {
     if (newPhotos && newPhotos.length > 0) {
-      photosPreviews.value = [];
-      Array.from(newPhotos).forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            photosPreviews.value.push(e.target.result as string);
-          }
-        };
-        reader.readAsDataURL(file);
+      const newPreviews: string[] = [];
+      const filePromises = Array.from(newPhotos).map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(file);
+        });
       });
-    } else if (!props.editMode) {
+      Promise.all(filePromises).then((previews) => {
+        photosPreviews.value = previews;
+      });
+    } else if (!props.editMode || (props.editMode && !props.pet?.photos?.length)) {
       photosPreviews.value = [];
     }
   },
@@ -310,12 +313,9 @@ watch(
 
 const removePhoto = (index: number) => {
   photosPreviews.value.splice(index, 1);
-
-  if (form.value.photos && form.value.photos.length > 0) {
+  if (form.value.photos) {
     const filesArray = Array.from(form.value.photos);
     filesArray.splice(index, 1);
-
-    // Atualizar o array de fotos
     form.value.photos = filesArray;
   }
 };
@@ -331,11 +331,30 @@ const resetForm = () => {
     photos: [],
   };
   photosPreviews.value = [];
+  if (petForm.value) {
+    petForm.value.resetValidation();
+  }
 };
 
 const closeModal = () => {
   resetForm();
   showModal.value = false;
+};
+
+// Nova função para fazer upload das imagens para o Firebase Storage
+const uploadPhotosToFirebase = async (files: File[]): Promise<string[]> => {
+  if (!files || files.length === 0) return [];
+
+  const storage = getStorage();
+  const uploadPromises = files.map(async (file) => {
+    // Cria um nome de arquivo único para evitar conflitos
+    const uniqueFileName = `pets/${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name}`;
+    const fileRef = storageRef(storage, uniqueFileName);
+    const snapshot = await uploadBytes(fileRef, file);
+    return await getDownloadURL(snapshot.ref);
+  });
+
+  return Promise.all(uploadPromises);
 };
 
 const submitForm = async () => {
@@ -345,56 +364,42 @@ const submitForm = async () => {
   saving.value = true;
 
   try {
-    const formData = new FormData();
+    let photoUrls: string[] = [];
 
-    // Adicionar dados básicos do pet
-    formData.append('name', form.value.name);
-    formData.append('description', form.value.description);
-    formData.append('species', form.value.species);
-    formData.append('age', form.value.age);
-    formData.append('size', form.value.size);
-    formData.append('gender', form.value.gender);
-    formData.append('userId', authStore.user?.id || '');
-
-    // Adicionar fotos como arquivos
+    // 1. Faça o upload das novas fotos (se houver) para o Firebase Storage
     if (form.value.photos && form.value.photos.length > 0) {
-      Array.from(form.value.photos).forEach((file, index) => {
-        formData.append('photos', file);
-      });
+      photoUrls = await uploadPhotosToFirebase(Array.from(form.value.photos));
+    } else if (props.editMode && props.pet?.photos) {
+      // Se estiver editando sem novas fotos, mantenha as URLs antigas
+      photoUrls = props.pet.photos.map((p) => p.url);
     }
 
-    // Debug: Ver o que está sendo enviado
-    console.log('FormData contents:');
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(`${key}: File - ${value.name} (${value.size} bytes)`);
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    }
+    // 2. Monte o payload JSON para enviar ao backend
+    const payload = {
+      name: form.value.name,
+      description: form.value.description,
+      species: form.value.species,
+      age: form.value.age,
+      size: form.value.size,
+      gender: form.value.gender,
+      userId: authStore.user?.id || '',
+      photos: photoUrls, // Envia o array de URLs
+    };
 
     let response;
     if (props.editMode && props.pet) {
-      response = await api.patch(`/pets/${props.pet.id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // 3. Envie o payload JSON via PATCH - sem cabeçalhos extras
+      response = await api.patch(`/pets/${props.pet.id}`, payload);
       emit('pet-updated', response.data);
     } else {
-      response = await api.post('/pets', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // 4. Envie o payload JSON via POST - sem cabeçalhos extras
+      response = await api.post('/pets', payload);
       emit('pet-created', response.data);
     }
 
     closeModal();
   } catch (error: any) {
     console.error('Erro ao salvar pet:', error);
-
-    // Mostrar erro mais específico para o usuário
     if (error.response?.data?.message) {
       console.error('Erro do servidor:', error.response.data.message);
     }
@@ -403,9 +408,3 @@ const submitForm = async () => {
   }
 };
 </script>
-
-<style scoped>
-.block {
-  display: block;
-}
-</style>
