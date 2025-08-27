@@ -33,7 +33,7 @@
             size="xl"
             class="px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
             no-caps
-            @click="navigateToRegister"
+            @click="navigateToMyPets"
           >
             <q-icon name="volunteer_activism" class="mr-3" size="md" />
             Divulgar Animal
@@ -74,7 +74,7 @@
             <p class="text-gray-600 mb-6">
               Ajude um animalzinho a encontrar um lar cadastrando-o em nossa plataforma
             </p>
-            <q-btn color="primary" class="rounded-lg" no-caps @click="navigateToRegister">
+            <q-btn color="primary" class="rounded-lg" no-caps @click="navigateToMyPets">
               Cadastrar Pet
             </q-btn>
           </div>
@@ -142,12 +142,7 @@ const router = useRouter();
 
 // Funções de navegação
 const navigateToAdopt = () => {
-  // router.push('/adotar')
-  console.log('Navegar para página de adoção');
-};
-
-const navigateToRegister = () => {
-  void router.push('/register');
+  void router.push('/pets')
 };
 
 const navigateToContact = () => {
@@ -159,4 +154,8 @@ const navigateToAbout = () => {
   // router.push('/sobre')
   console.log('Navegar para página sobre');
 };
+
+const navigateToMyPets = () => {
+  void router.push('/meusPets')
+}
 </script>
