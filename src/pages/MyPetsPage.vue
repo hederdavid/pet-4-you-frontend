@@ -72,8 +72,8 @@
 
     <q-card flat bordered class="q-mb-lg">
       <q-card-section class="bg-gray-50">
-        <div class="row q-gutter-md items-end">
-          <div class="col-md-3 col-sm-6 col-xs-12">
+        <div class="row q-gutter-md items-end justify-center">
+          <div class="col-md-3 col-sm-6 col-xs-10">
             <q-input
               v-model="searchFilter"
               placeholder="Buscar por nome..."
@@ -86,7 +86,7 @@
               </template>
             </q-input>
           </div>
-          <div class="col-md-2 col-sm-3 col-xs-6">
+          <div class="col-md-2 col-sm-3 col-xs-10">
             <q-select
               v-model="speciesFilter"
               :options="speciesOptions"
@@ -98,7 +98,7 @@
               map-options
             />
           </div>
-          <div class="col-md-2 col-sm-3 col-xs-6">
+          <div class="col-md-2 col-sm-3 col-xs-10">
             <q-select
               v-model="statusFilter"
               :options="statusOptions"
@@ -110,7 +110,7 @@
               map-options
             />
           </div>
-          <div class="col-md-2 col-sm-3 col-xs-6">
+          <div class="col-md-2 col-sm-3 col-xs-10">
             <q-select
               v-model="publicationStatusFilter"
               :options="publicationStatusOptions"
