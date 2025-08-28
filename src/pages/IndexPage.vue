@@ -60,9 +60,6 @@
             <p class="text-gray-600 mb-6">
               Navegue por nossa galeria de animais disponíveis e encontre seu novo companheiro
             </p>
-            <q-btn color="accent" class="rounded-lg" no-caps @click="navigateToAdopt">
-              Ver Animais
-            </q-btn>
           </div>
 
           <!-- Divulgar -->
@@ -74,9 +71,6 @@
             <p class="text-gray-600 mb-6">
               Ajude um animalzinho a encontrar um lar cadastrando-o em nossa plataforma
             </p>
-            <q-btn color="primary" class="rounded-lg" no-caps @click="navigateToMyPets">
-              Cadastrar Pet
-            </q-btn>
           </div>
 
           <!-- Conectar -->
@@ -88,9 +82,6 @@
             <p class="text-gray-600 mb-6">
               Entre em contato diretamente com os responsáveis e inicie o processo de adoção
             </p>
-            <q-btn color="orange" class="rounded-lg" no-caps @click="navigateToContact">
-              Saiba Mais
-            </q-btn>
           </div>
         </div>
       </div>
@@ -118,17 +109,6 @@
           >
             Começar Adoção
           </q-btn>
-
-          <q-btn
-            size="lg"
-            outline
-            class="border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white transition-all duration-300"
-            color="white"
-            no-caps
-            @click="navigateToAbout"
-          >
-            Saiba Mais
-          </q-btn>
         </div>
       </div>
     </section>
@@ -140,22 +120,11 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-// Funções de navegação
 const navigateToAdopt = () => {
-  void router.push('/pets')
-};
-
-const navigateToContact = () => {
-  // router.push('/contato')
-  console.log('Navegar para página de contato');
-};
-
-const navigateToAbout = () => {
-  // router.push('/sobre')
-  console.log('Navegar para página sobre');
+  void router.push('/pets');
 };
 
 const navigateToMyPets = () => {
-  void router.push('/meusPets')
-}
+  void router.push('/meusPets');
+};
 </script>
