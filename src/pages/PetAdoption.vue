@@ -1,9 +1,3 @@
-Claro\! Aqui está o código completo do componente `PetAdoption.vue` com as correções aplicadas. Eu
-adicionei duas camadas de proteção para garantir que o erro não ocorra novamente: 1. **Na função
-`loadPets`:** Verificamos se a resposta da API é de fato um array antes de atribuí-la. 2. **Na
-propriedade `filteredPets`:** Adicionamos uma "guarda" no início para garantir que, se `pets.value`
-por algum motivo não for um array, a função retorne um array vazio em vez de quebrar. ----- ###
-Código Corrigido: PetAdoption.vue ```vue
 <template>
   <q-page class="q-pa-lg">
     <div class="row items-center q-mb-xl">
@@ -15,15 +9,15 @@ Código Corrigido: PetAdoption.vue ```vue
 
     <q-card flat bordered class="q-mb-lg">
       <q-card-section class="bg-gray-50">
-        <div class="row q-gutter-md items-end">
-          <div class="col-md-3 col-sm-6 col-xs-12">
+        <div class="row q-gutter-md items-center justify-center">
+          <div class="col-md-3 col-sm-6 col-xs-10">
             <q-input v-model="searchFilter" placeholder="Buscar pets..." outlined dense clearable>
               <template v-slot:prepend>
                 <q-icon name="search" />
               </template>
             </q-input>
           </div>
-          <div class="col-md-2 col-sm-3 col-xs-6">
+          <div class="col-md-2 col-sm-3 col-xs-10">
             <q-select
               v-model="speciesFilter"
               :options="speciesOptions"
@@ -35,7 +29,7 @@ Código Corrigido: PetAdoption.vue ```vue
               map-options
             />
           </div>
-          <div class="col-md-2 col-sm-3 col-xs-6">
+          <div class="col-md-2 col-sm-3 col-xs-10">
             <q-select
               v-model="ageFilter"
               :options="ageOptions"
@@ -47,7 +41,7 @@ Código Corrigido: PetAdoption.vue ```vue
               map-options
             />
           </div>
-          <div class="col-md-2 col-sm-3 col-xs-6">
+          <div class="col-md-2 col-sm-3 col-xs-10">
             <q-select
               v-model="sizeFilter"
               :options="sizeOptions"
@@ -59,7 +53,7 @@ Código Corrigido: PetAdoption.vue ```vue
               map-options
             />
           </div>
-          <div class="col-md-2 col-sm-3 col-xs-6">
+          <div class="col-md-2 col-sm-3 col-xs-10">
             <q-select
               v-model="genderFilter"
               :options="genderOptions"
@@ -69,16 +63,6 @@ Código Corrigido: PetAdoption.vue ```vue
               clearable
               emit-value
               map-options
-            />
-          </div>
-          <div class="col-auto">
-            <q-btn
-              color="primary"
-              outline
-              icon="refresh"
-              label="Atualizar"
-              @click="loadPets"
-              :loading="loading"
             />
           </div>
         </div>
