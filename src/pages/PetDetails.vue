@@ -1,6 +1,5 @@
 <template>
   <q-page class="bg-gray-50 min-h-screen">
-    <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center min-h-[60vh] p-8">
       <div class="text-center">
         <q-spinner color="primary" size="3em" />
@@ -8,7 +7,6 @@
       </div>
     </div>
 
-    <!-- Pet não encontrado -->
     <div v-else-if="!pet" class="flex items-center justify-center min-h-[60vh] p-8">
       <div class="text-center">
         <q-icon name="pets" size="6em" class="text-grey-4 q-mb-md" />
@@ -27,19 +25,15 @@
       </div>
     </div>
 
-    <!-- Conteúdo Principal -->
     <div v-else class="max-w-7xl mx-auto px-4">
-      <!-- Header -->
       <div class="bg-white py-8 pb-12 mb-8 border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4">
-          <!-- Breadcrumb -->
           <q-breadcrumbs class="q-mb-md">
             <q-breadcrumbs-el label="Pet4You" icon="home" @click="$router.push('/')" />
             <q-breadcrumbs-el label="Adoção" @click="$router.push('/pets')" />
             <q-breadcrumbs-el :label="pet.name" />
           </q-breadcrumbs>
 
-          <!-- Botão Voltar -->
           <q-btn
             flat
             color="grey-8"
@@ -49,14 +43,17 @@
             class="q-mb-md"
           />
 
-          <!-- Pet Header Info -->
-          <div class="mt-8">
-            <h1 class="text-4xl font-bold text-gray-800 mb-4 leading-tight">{{ pet.name }}</h1>
-            <div class="flex flex-wrap gap-3">
+          <div class="mt-6 md:mt-8">
+            <h1 class="text-2xl md:text-4xl font-bold text-gray-800 mb-3 md:mb-4 leading-tight">
+              {{ pet.name }}
+            </h1>
+            <div class="flex flex-wrap gap-2 md:gap-3">
               <q-chip
                 :color="getSpeciesColor(pet.species)"
                 text-color="white"
                 :icon="getSpeciesIcon(pet.species)"
+                size="md"
+                class="text-xs md:text-sm px-2 md:px-3"
               >
                 {{ getSpeciesLabel(pet.species) }}
               </q-chip>
@@ -64,10 +61,18 @@
                 :color="pet.gender === 'MALE' ? 'blue' : 'pink'"
                 text-color="white"
                 :icon="pet.gender === 'MALE' ? 'male' : 'female'"
+                size="md"
+                class="text-xs md:text-sm px-2 md:px-3"
               >
                 {{ pet.gender === 'MALE' ? 'Macho' : 'Fêmea' }}
               </q-chip>
-              <q-chip color="teal" text-color="white" :icon="getAgeIcon(pet.age)">
+              <q-chip
+                color="teal"
+                text-color="white"
+                :icon="getAgeIcon(pet.age)"
+                size="md"
+                class="text-xs md:text-sm px-2 md:px-3"
+              >
                 {{ getAgeLabel(pet.age) }}
               </q-chip>
             </div>
@@ -278,10 +283,12 @@
           <p class="text-body1 q-mb-md">
             Que ótimo que você tem interesse em adotar {{ pet?.name }}!
           </p>
-          <p class="text-body2 text-grey-7">
+          <p class="text-gray-400">
             Entre em contato com o responsável para conhecer melhor o pet e iniciar o processo de
             adoção.
           </p>
+          <p>Email: {{ pet?.user?.email || 'E-mail não informado' }}</p>
+          <p>Número: {{ pet?.user?.phone || 'Número não informado' }}</p>
         </q-card-section>
 
         <q-card-actions align="center" class="q-pa-lg">
@@ -463,20 +470,3 @@ onMounted(async () => {
   console.log(pet.value?.photos[0]?.url);
 });
 </script>
-
-<style scoped>
-/* Ajustes específicos para mobile */
-@media (max-width: 640px) {
-  .grid-cols-1 {
-    grid-template-columns: 1fr;
-  }
-
-  .flex-wrap > * {
-    flex-direction: column;
-  }
-
-  .min-w-\[400px\] {
-    min-width: 90vw;
-  }
-}
-</style>
