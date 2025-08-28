@@ -239,7 +239,7 @@ import { api } from 'boot/axios';
 import { useAuthStore } from 'stores/auth';
 import type { User } from 'src/types/user';
 import { notification } from 'src/utils/notification';
-import ModalUser from 'src/components/ModalUser.vue';
+import ModalUser from 'src/components/modals/ModalUser.vue';
 import type { State } from 'src/types/state';
 import { dialogService } from 'src/utils/dialog';
 import { formatDate } from 'src/utils/formatters';
