@@ -1,7 +1,6 @@
 <template>
   <q-page class="bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-6xl">
-      <!-- Header Section -->
       <div
         class="rounded-xl p-8 mb-8 shadow-lg"
         style="background: linear-gradient(135deg, var(--q-primary), var(--q-accent))"
@@ -28,7 +27,6 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Informações Pessoais -->
         <div class="lg:col-span-2">
           <q-card class="shadow-md">
             <q-card-section class="bg-white">
@@ -48,7 +46,6 @@
 
               <q-form @submit="updateProfile" ref="profileForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <!-- Nome -->
                   <q-input
                     v-model="profileData.name"
                     label="Nome Completo"
@@ -63,7 +60,6 @@
                     </template>
                   </q-input>
 
-                  <!-- Email -->
                   <q-input
                     v-model="profileData.email"
                     label="Email"
@@ -82,7 +78,6 @@
                     </template>
                   </q-input>
 
-                  <!-- Telefone -->
                   <q-input
                     v-model="profileData.phone"
                     label="Telefone"
@@ -97,7 +92,6 @@
                     </template>
                   </q-input>
 
-                  <!-- Estado -->
                   <q-select
                     v-model="profileData.state"
                     :options="filteredStateOptions"
@@ -118,7 +112,6 @@
                   </q-select>
                 </div>
 
-                <!-- Cidade em linha separada para dar mais destaque -->
                 <div class="mb-6">
                   <q-select
                     v-model="profileData.city"
@@ -143,7 +136,6 @@
                   </q-select>
                 </div>
 
-                <!-- Botões de Ação -->
                 <div v-if="editMode" class="flex justify-end gap-3">
                   <q-btn color="grey" outline label="Cancelar" @click="cancelEdit" no-caps />
                   <q-btn
@@ -159,9 +151,7 @@
           </q-card>
         </div>
 
-        <!-- Sidebar com Estatísticas e Ações -->
         <div class="space-y-6">
-          <!-- Estatísticas -->
           <q-card class="shadow-md">
             <q-card-section class="bg-white">
               <h3 class="text-lg font-semibold text-gray-800 mb-4">Minhas Estatísticas</h3>
@@ -187,7 +177,6 @@
             </q-card-section>
           </q-card>
 
-          <!-- Ações Rápidas -->
           <q-card class="shadow-md">
             <q-card-section class="bg-white">
               <h3 class="text-lg font-semibold text-gray-800 mb-4">Ações</h3>
@@ -201,19 +190,11 @@
                   class="w-full"
                 />
 
-                <q-btn
-                  color="orange"
-                  icon="history"
-                  label="Histórico"
-                  @click="navigateToHistory"
-                  no-caps
-                  class="w-full"
-                />
+                
               </div>
             </q-card-section>
           </q-card>
 
-          <!-- Configurações de Conta -->
           <q-card class="shadow-md">
             <q-card-section class="bg-white">
               <h3 class="text-lg font-semibold text-gray-800 mb-4">Configurações</h3>
@@ -242,7 +223,6 @@
       </div>
     </div>
 
-    <!-- Dialog para Alterar Senha -->
     <q-dialog v-model="showChangePassword">
       <q-card style="min-width: 400px">
         <q-card-section>
@@ -299,7 +279,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- Dialog para Confirmar Exclusão -->
     <q-dialog v-model="showDeleteAccount">
       <q-card>
         <q-card-section class="bg-negative text-white">
@@ -343,7 +322,6 @@ import type { City } from 'src/types/city';
 import { isValidEmail } from 'src/utils/validators';
 import { formatDate } from 'src/utils/formatters';
 
-// Interfaces para os dados
 interface ProfileData {
   name: string;
   email: string;
@@ -366,9 +344,8 @@ const router = useRouter();
 const authStore = useAuthStore();
 const { user: currentUser } = storeToRefs(authStore);
 
-// --- Refs de Estado da UI ---
 const editMode = ref(false);
-const saving = ref(false); // Mantido para o botão, embora o handlePromise gerencie o loading da notificação
+const saving = ref(false);
 const changingPassword = ref(false);
 const deletingAccount = ref(false);
 const showChangePassword = ref(false);
@@ -377,19 +354,16 @@ const deleteConfirmation = ref('');
 const showPassword = ref(false);
 const loadingCities = ref(false);
 
-// --- Dados Reativos ---
 const profileData = reactive<ProfileData>({ name: '', email: '', phone: '', state: '', city: '' });
 const passwordData = reactive<PasswordData>({ newPassword: '', confirmPassword: '' });
 const userStats = reactive<UserStats>({ petsRegistered: 0, adoptions: 0 });
 
-// --- Lógica de Localização ---
 const filteredStateOptions = ref<State[]>([...brazilianStates]);
 const allCitiesForState = ref<City[]>([]);
 const filteredCityOptions = ref<City[]>([]);
 
 const toggleEditMode = () => {
   if (editMode.value) {
-    // Se estava editando, restaura os dados originais
     loadUserData();
   }
   editMode.value = !editMode.value;
@@ -433,7 +407,6 @@ const fetchCities = async (stateCode: string) => {
   }
 };
 
-// Observador para buscar cidades quando o estado do formulário muda
 watch(
   () => profileData.state,
   (newStateCode) => {
@@ -442,15 +415,12 @@ watch(
   },
 );
 
-// Observador para resetar o formulário de senha quando o diálogo fecha
 watch(showChangePassword, (isVisible) => {
   if (!isVisible) {
     passwordData.newPassword = '';
     passwordData.confirmPassword = '';
   }
 });
-
-// --- Funções Principais ---
 
 const loadUserData = () => {
   if (currentUser.value) {
@@ -475,7 +445,6 @@ const updateProfile = async () => {
     authStore.updateUser({ ...profileData });
     editMode.value = false;
   } catch (e) {
-    // O erro já foi notificado, log é opcional
     console.error('Falha na atualização do perfil:', e);
   } finally {
     saving.value = false;
@@ -509,7 +478,6 @@ const changePassword = async () => {
 
 const deleteAccount = async () => {
   deletingAccount.value = true;
-  // Usando DELETE ou um PATCH para soft-delete, dependendo da sua API
   const promise = api.delete(`users/${currentUser.value!.id}`);
 
   try {
@@ -527,11 +495,8 @@ const deleteAccount = async () => {
   }
 };
 
-// --- Funções de Navegação ---
 const navigateToMyPets = () => router.push('/meusPets');
-const navigateToHistory = () => router.push('/historico');
 
-// --- Lifecycle Hook ---
 onMounted(async () => {
   loadUserData();
   const petsRegistered = await api.get(
