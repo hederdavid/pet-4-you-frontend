@@ -1,185 +1,167 @@
 <template>
   <div
-    class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4"
+    class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4"
   >
-    <div class="grid grid-cols-1 gap-4">
-      
-      <div class="grid grid-cols-1 gap-4">
-        <div class="max-w-6xl w-full">
-          <div class="text-center mt-8 flex flex-col items-center">
-            <h2 class="text-3xl font-bold text-gray-800 mb-3">Bem-vindo de volta!</h2>
+    <div class="w-full max-w-md">
+      <!-- Logo e Header -->
+      <div class="text-center mb-8">
+        <div
+          class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-6"
+        >
+          <q-icon name="pets" size="32px" class="text-white" />
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          <span class="text-orange-400">Pet</span><span class="text-purple-600">4</span
+          ><span class="text-blue-600">You</span>
+        </h1>
+        <p class="text-gray-600">Entre na sua conta e conecte-se com pets incríveis! 🐾</p>
+      </div>
+
+      <!-- Card Principal -->
+      <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 backdrop-blur-sm">
+        <div class="space-y-6">
+          <!-- Formulário -->
+          <q-form @submit="onSubmit" class="space-y-6">
+            <!-- Email -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-gray-700">E-mail</label>
+              <q-input
+                v-model="email"
+                type="email"
+                outlined
+                dense
+                class="w-full"
+                placeholder="seu.email@exemplo.com"
+                :rules="[
+                  (val) => !!val || 'E-mail é obrigatório',
+                  (val) => isValidEmail(val) || 'E-mail inválido',
+                ]"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="email" class="text-blue-500" />
+                </template>
+              </q-input>
+            </div>
+
+            <!-- Senha -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-gray-700">Senha</label>
+              <q-input
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                outlined
+                dense
+                class="w-full"
+                placeholder="••••••••"
+                :rules="[(val) => !!val || 'Senha é obrigatória']"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="lock" class="text-blue-500" />
+                </template>
+                <template v-slot:append>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    :icon="showPassword ? 'visibility_off' : 'visibility'"
+                    class="text-gray-400 hover:text-blue-500"
+                    @click="showPassword = !showPassword"
+                  />
+                </template>
+              </q-input>
+            </div>
+
+            <!-- Opções -->
+            <div class="flex items-center justify-between">
+              <q-checkbox
+                v-model="rememberMe"
+                label="Lembrar de mim"
+                color="blue"
+                class="text-sm text-gray-600"
+              />
+              <q-btn
+                flat
+                no-caps
+                dense
+                class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                @click="forgotPassword"
+              >
+                Esqueci a senha
+              </q-btn>
+            </div>
+
+            <!-- Botão Login -->
+            <q-btn
+              type="submit"
+              color="primary"
+              size="lg"
+              class="w-full h-12 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-600"
+              no-caps
+              :loading="loading"
+            >
+              <q-icon name="login" class="mr-2" />
+              Entrar na minha conta
+            </q-btn>
+          </q-form>
+
+          <!-- Divisor -->
+          <div class="relative py-4">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
+            <div class="relative flex justify-center">
+              <span class="px-4 bg-white text-sm text-gray-500 font-medium">ou continue com</span>
+            </div>
           </div>
 
-          <div class="grid lg:grid-cols-2 gap-12 items-center">
-            <div class="lg:flex flex-col items-center justify-center">
-              <div class="relative">
-                <img
-                  src="/dog-and-cat-happy.png"
-                  alt="Cachorro e gato felizes"
-                  class="w-full max-w-md mx-auto rounded-3xl shadow-2xl"
-                />
-                <div
-                  class="absolute -bottom-4 -left-4 bg-accent text-white p-3 rounded-full shadow-lg"
-                >
-                  <q-icon name="pets" size="24px" />
-                </div>
-              </div>
-            </div>
-
-            <div class="w-full max-w-md mx-auto lg:mx-0 flex flex-col items-center">
-              <div class="bg-white rounded-3xl shadow-xl p-8 w-full">
-                <!-- Header do Formulário -->
-                <div class="text-center mb-8">
-                  <div class="flex justify-center items-center mb-4">
-                    <q-avatar size="50px" class="bg-accent">
-                      <q-icon name="pets" size="28px" class="text-white" />
-                    </q-avatar>
-                  </div>
-                  <h1 class="text-3xl font-bold text-gray-800">
-                    <span class="text-orange-400">Pet</span><span class="text-accent">4</span
-                    ><span class="text-primary">You</span>
-                  </h1>
-                  <p class="text-gray-600 mt-2">Faça login na sua conta</p>
-                </div>
-
-                <q-form @submit="onSubmit" class="space-y-6">
-                  <div>
-                    <q-input
-                      v-model="email"
-                      type="email"
-                      label="E-mail"
-                      outlined
-                      class="w-full"
-                      :rules="[
-                        (val) => !!val || 'E-mail é obrigatório',
-                        (val) => isValidEmail(val) || 'E-mail inválido',
-                      ]"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="email" class="text-primary" />
-                      </template>
-                    </q-input>
-                  </div>
-
-                  <!-- Senha -->
-                  <div>
-                    <q-input
-                      v-model="password"
-                      :type="showPassword ? 'text' : 'password'"
-                      label="Senha"
-                      outlined
-                      class="w-full"
-                      :rules="[(val) => !!val || 'Senha é obrigatória']"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="lock" class="text-primary" />
-                      </template>
-                      <template v-slot:append>
-                        <q-icon
-                          :name="showPassword ? 'visibility' : 'visibility_off'"
-                          class="cursor-pointer text-gray-400 hover:text-primary"
-                          @click="showPassword = !showPassword"
-                        />
-                      </template>
-                    </q-input>
-                  </div>
-
-                  <!-- Lembrar-me e Esqueci senha -->
-                  <div class="flex items-center justify-between">
-                    <q-checkbox
-                      v-model="rememberMe"
-                      label="Lembrar de mim"
-                      color="primary"
-                      class="text-sm"
-                    />
-                    <q-btn
-                      flat
-                      no-caps
-                      class="text-primary text-sm hover:text-accent transition-colors duration-200"
-                      @click="forgotPassword"
-                    >
-                      Esqueci minha senha
-                    </q-btn>
-                  </div>
-
-                  <!-- Botão de Login -->
-                  <q-btn
-                    type="submit"
-                    color="primary"
-                    size="lg"
-                    class="w-full rounded-xl py-3 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-                    no-caps
-                    :loading="loading"
-                  >
-                    <q-icon name="login" class="mr-2" />
-                    Entrar
-                  </q-btn>
-                </q-form>
-
-                <!-- Divisor -->
-                <div class="relative my-8">
-                  <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200"></div>
-                  </div>
-                  <div class="relative flex justify-center text-sm">
-                    <span class="px-4 bg-white text-gray-500">ou continue com</span>
-                  </div>
-                </div>
-
-                <!-- Login Social -->
-                <div class="grid grid-cols-2 gap-4">
-                  <q-btn
-                    outline
-                    color="primary"
-                    class="py-3 rounded-xl hover:bg-blue-50 transition-all duration-200"
-                    no-caps
-                    @click="loginWithGoogle"
-                  >
-                    <q-icon name="fab fa-google" class="mr-2" />
-                    Google
-                  </q-btn>
-                  <q-btn
-                    outline
-                    color="accent"
-                    class="py-3 rounded-xl hover:bg-purple-50 transition-all duration-200"
-                    no-caps
-                    @click="loginWithFacebook"
-                  >
-                    <q-icon name="fab fa-facebook-f" class="mr-2" />
-                    Facebook
-                  </q-btn>
-                </div>
-
-                <!-- Link para Cadastro -->
-                <div class="text-center mt-8">
-                  <p class="text-gray-600">
-                    Não tem uma conta?
-                    <q-btn
-                      flat
-                      no-caps
-                      class="text-accent font-semibold hover:text-orange-400 transition-colors duration-200 p-0 ml-1 rounded px-2"
-                      @click="goToSignup"
-                    >
-                      Cadastre-se gratuitamente
-                    </q-btn>
-                  </p>
-                </div>
-              </div>
-
-              <!-- Mobile Image -->
-              <div class="lg:hidden mt-8 text-center">
-                <img
-                  src="/dog-and-cat-happy.png"
-                  alt="Cachorro e gato felizes"
-                  class="w-48 h-48 mx-auto rounded-full shadow-xl object-cover"
-                />
-                <p class="text-gray-600 mt-4 text-sm">
-                  Junte-se a nós e ajude pets a encontrarem uma família! 🐾
-                </p>
-              </div>
-            </div>
+          <!-- Login Social -->
+          <div class="grid grid-cols-2 gap-3">
+            <q-btn
+              outline
+              class="h-12 rounded-xl border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+              no-caps
+              @click="loginWithGoogle"
+            >
+              <q-icon name="fab fa-google" class="text-red-500 mr-2" />
+              <span class="text-gray-700">Google</span>
+            </q-btn>
+            <q-btn
+              outline
+              class="h-12 rounded-xl border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200"
+              no-caps
+              @click="loginWithFacebook"
+            >
+              <q-icon name="fab fa-facebook-f" class="text-blue-600 mr-2" />
+              <span class="text-gray-700">Facebook</span>
+            </q-btn>
           </div>
         </div>
+      </div>
+
+      <!-- Link Cadastro -->
+      <div class="text-center mt-6">
+        <p class="text-gray-600">
+          Primeira vez aqui?
+          <q-btn
+            flat
+            no-caps
+            dense
+            class="text-purple-600 font-semibold hover:text-purple-700 transition-colors ml-1"
+            @click="goToSignup"
+          >
+            Crie sua conta gratuita
+          </q-btn>
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="text-center mt-8">
+        <p class="text-xs text-gray-500">
+          Ao continuar, você concorda com nossos
+          <span class="text-blue-600 hover:underline cursor-pointer">Termos de Uso</span>
+          e
+          <span class="text-blue-600 hover:underline cursor-pointer">Política de Privacidade</span>
+        </p>
       </div>
     </div>
   </div>
@@ -250,7 +232,5 @@ const goToSignup = () => {
   void router.push('/register');
 };
 
-onMounted(() => {
-  
-});
+onMounted(() => {});
 </script>
