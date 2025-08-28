@@ -40,6 +40,11 @@ const routes: RouteRecordRaw[] = [
         name: 'petDetails',
         component: () => import('pages/PetDetails.vue'),
       },
+      {
+        path: '/sobre',
+        name: 'about',
+        component: () => import('pages/AboutPet4You.vue'),
+      }
     ],
   },
   {
