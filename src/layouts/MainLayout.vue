@@ -24,7 +24,6 @@
     </q-header>
 
     <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered :width="280">
-      <!-- Logo Section -->
       <div class="q-pa-lg bg-white shadow-sm">
         <div class="flex items-center">
           <q-avatar size="36px" class="q-mr-sm">
@@ -326,7 +325,7 @@ const navigateToAdopt = () => {
 };
 
 const navigateToAbout = () => {
-  console.log('Navegar para página sobre');
+  void router.push('/sobre');
 };
 
 const navigateToLogin = () => {
