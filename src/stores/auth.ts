@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
 import type { User } from 'src/types/user';
-// 1. IMPORTE AS FUNÇÕES DE AUTENTICAÇÃO DO FIREBASE
+
 import { getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
 
 interface AuthState {
@@ -27,21 +27,15 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    /**
-     * Ação privada para autenticar no Firebase com um token customizado do backend.
-     * @private
-     */
     async _authenticateWithFirebase() {
       if (!this.user) {
         console.error('Tentativa de autenticar no Firebase sem um usuário logado no backend.');
         return;
       }
       try {
-        // Pega o token customizado do nosso backend seguro
         const response = await api.get('/auth/firebase-token');
         const firebaseToken = response.data.token;
 
-        // Usa o token para fazer login silencioso no SDK do Firebase no frontend
         const auth = getAuth();
         await signInWithCustomToken(auth, firebaseToken);
         console.log('Sessão do Firebase sincronizada com sucesso.');
@@ -55,7 +49,6 @@ export const useAuthStore = defineStore('auth', {
         const response = await api.post('/auth/login', credentials);
         this.user = response.data.user;
 
-        // 2. APÓS O LOGIN BEM-SUCEDIDO, SINCRONIZA A SESSÃO COM O FIREBASE
         await this._authenticateWithFirebase();
 
         return true;
@@ -69,7 +62,6 @@ export const useAuthStore = defineStore('auth', {
     async loginWithFirebase(token: string) {
       try {
         await api.post('/auth/firebase-login', { token });
-        // fetchUser já irá chamar a autenticação do Firebase
         await this.fetchUser();
       } catch (error) {
         console.error('Erro no login com Firebase no backend:', error);
@@ -81,7 +73,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         await api.post('/auth/logout');
 
-        // 3. FAZ O LOGOUT DO FIREBASE TAMBÉM
         const auth = getAuth();
         await signOut(auth);
       } catch (error) {
@@ -107,10 +98,9 @@ export const useAuthStore = defineStore('auth', {
           createdAt: data.createdAt,
         };
 
-        // 4. SE O USUÁRIO TINHA UMA SESSÃO VÁLIDA, SINCRONIZA COM O FIREBASE
         await this._authenticateWithFirebase();
       } catch (error: unknown) {
-        console.log(error)
+        console.log(error);
         this.user = null;
       } finally {
         this.isAuthReady = true;
