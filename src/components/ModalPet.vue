@@ -1,7 +1,6 @@
 <template>
   <q-dialog v-model="showModal" persistent @hide="resetForm">
-    <q-card style="min-width: 600px; max-width: 800px">
-      <!-- Header -->
+    <q-card class="w-full sm:w-[400px] md:w-[600px] lg:w-[800px] h-[90%]">
       <q-card-section class="row items-center q-pb-none bg-primary text-white">
         <q-avatar color="white" text-color="primary" class="q-mr-md mb-2">
           <q-icon :name="editMode ? 'edit' : 'pets'" />
@@ -11,10 +10,8 @@
         <q-btn icon="close" flat round dense @click="closeModal" />
       </q-card-section>
 
-      <!-- Form -->
       <q-card-section class="q-pa-lg">
         <q-form @submit="submitForm" ref="petForm" class="q-gutter-md">
-          <!-- Nome do Pet -->
           <q-input
             v-model="form.name"
             label="Nome do pet *"
@@ -30,7 +27,6 @@
             </template>
           </q-input>
 
-          <!-- Descrição -->
           <q-input
             v-model="form.description"
             label="Descrição *"
@@ -48,8 +44,7 @@
             </template>
           </q-input>
 
-          <!-- Espécie e Gênero -->
-          <div class="row q-gutter-md">
+          <div class="">
             <div class="col">
               <q-select
                 v-model="form.species"
@@ -86,8 +81,7 @@
             </div>
           </div>
 
-          <!-- Idade e Porte -->
-          <div class="row q-gutter-md">
+          <div class="">
             <div class="col">
               <q-select
                 v-model="form.age"
@@ -120,7 +114,6 @@
             </div>
           </div>
 
-          <!-- Upload de Fotos -->
           <div>
             <label class="text-body1 text-weight-medium q-mb-sm block"> Fotos do pet * </label>
             <q-file
@@ -132,9 +125,9 @@
               max-files="5"
               :rules="[
                 (val) => {
-                  // No modo de edição, se já existem fotos (previews) não é obrigatório adicionar novas
+                 
                   if (props.editMode && photosPreviews.length > 0) return true;
-                  // No modo de criação ou edição sem fotos existentes, é obrigatório
+               
                   return (!!val && val.length > 0) || 'É obrigatório enviar pelo menos uma foto';
                 },
                 (val) => !val || val.length <= 5 || 'Máximo 5 fotos permitidas',
@@ -152,7 +145,6 @@
               </template>
             </q-file>
 
-            <!-- Preview das fotos -->
             <div v-if="photosPreviews.length > 0" class="row q-gutter-sm q-mt-md">
               <div v-for="(preview, index) in photosPreviews" :key="index" class="relative">
                 <img
@@ -174,7 +166,6 @@
         </q-form>
       </q-card-section>
 
-      <!-- Actions -->
       <q-card-actions align="right" class="q-pa-lg bg-grey-1">
         <q-btn flat label="Cancelar" @click="closeModal" class="q-px-xl" />
         <q-btn
@@ -197,8 +188,6 @@ import { PetSpecies, PetAge, PetSize, PetGender, type PetForm } from 'src/types/
 import { api } from 'src/boot/axios';
 import { AxiosError } from 'axios';
 import { useAuthStore } from 'src/stores/auth';
-// 1. IMPORTE AS FUNÇÕES DO FIREBASE STORAGE
-// (Certifique-se de que seu projeto frontend tenha o firebase instalado e configurado)
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface Props {
@@ -225,7 +214,6 @@ const petForm = ref();
 const saving = ref(false);
 const photosPreviews = ref<string[]>([]);
 
-// O tipo do form.photos agora é File[] para o input, mas enviaremos string[] para a API
 const form = ref<PetForm>({
   name: '',
   description: '',
@@ -241,7 +229,6 @@ const showModal = computed({
   set: (value) => emit('update:modelValue', value),
 });
 
-// Opções para os selects
 const speciesOptions = [
   { label: 'Cachorro', value: PetSpecies.DOG, icon: 'pets' },
   { label: 'Gato', value: PetSpecies.CAT, icon: 'pets' },
@@ -265,7 +252,6 @@ const sizeOptions = [
   { label: 'Grande', value: PetSize.LARGE, icon: 'album' },
 ];
 
-// Watch para carregar dados quando está editando
 watch(
   () => props.pet,
   (newPet) => {
@@ -277,12 +263,10 @@ watch(
         age: newPet.age,
         size: newPet.size,
         gender: newPet.gender,
-        photos: [], // Começa vazio, pois o usuário pode querer adicionar novas fotos
+        photos: [],
       };
 
-      // Carregar previews das fotos existentes
       if (newPet.photos && newPet.photos.length > 0) {
-        // Assume que as URLs do backend já estão completas e corretas
         photosPreviews.value = newPet.photos.map((photo) => photo.url);
       }
     }
@@ -290,7 +274,6 @@ watch(
   { immediate: true },
 );
 
-// Watch para gerar previews das novas fotos selecionadas
 watch(
   () => form.value.photos,
   (newPhotos) => {
@@ -341,13 +324,11 @@ const closeModal = () => {
   showModal.value = false;
 };
 
-// Nova função para fazer upload das imagens para o Firebase Storage
 const uploadPhotosToFirebase = async (files: File[]): Promise<string[]> => {
   if (!files || files.length === 0) return [];
 
   const storage = getStorage();
   const uploadPromises = files.map(async (file) => {
-    // Cria um nome de arquivo único para evitar conflitos
     const uniqueFileName = `pets/${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${file.name}`;
     const fileRef = storageRef(storage, uniqueFileName);
     const snapshot = await uploadBytes(fileRef, file);
@@ -366,15 +347,12 @@ const submitForm = async () => {
   try {
     let photoUrls: string[] = [];
 
-    // 1. Faça o upload das novas fotos (se houver) para o Firebase Storage
     if (form.value.photos && form.value.photos.length > 0) {
       photoUrls = await uploadPhotosToFirebase(Array.from(form.value.photos));
     } else if (props.editMode && props.pet?.photos) {
-      // Se estiver editando sem novas fotos, mantenha as URLs antigas
       photoUrls = props.pet.photos.map((p) => p.url);
     }
 
-    // 2. Monte o payload JSON para enviar ao backend
     const payload = {
       name: form.value.name,
       description: form.value.description,
@@ -383,16 +361,14 @@ const submitForm = async () => {
       size: form.value.size,
       gender: form.value.gender,
       userId: authStore.user?.id || '',
-      photos: photoUrls, // Envia o array de URLs
+      photos: photoUrls,
     };
 
     let response;
     if (props.editMode && props.pet) {
-      // 3. Envie o payload JSON via PATCH - sem cabeçalhos extras
       response = await api.patch(`/pets/${props.pet.id}`, payload);
       emit('pet-updated', response.data);
     } else {
-      // 4. Envie o payload JSON via POST - sem cabeçalhos extras
       response = await api.post('/pets', payload);
       emit('pet-created', response.data);
     }
